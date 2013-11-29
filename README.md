@@ -18,7 +18,9 @@ Battle mode:
 * Move left and right with 'a' and 'd'
 * Jump with 'w' or 'space', hold for longer jump
 * Attack with up and down arrow keys
+* Repeat attacks will be slow, using the two attacks consecutively will be more effective
 * Dodge with left and right arrow keys
+
 
 ## Play the game!
 (insert link here ;D)
