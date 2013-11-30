@@ -20,6 +20,8 @@ Now the end of the month has arrived and here are a couple of new screenshots of
 Despite the team being composed of two musicians and an "ametuer singer", we are yet to add our soulful tunes to the game. Including the font used, this entire endevour has been done from scratch by us during this month.
 
 ## Instructions
+Click on screen after the menu to ensure input is captured.
+
 Top-down RPG mode:
 * Move with WASD
 * Progress text cutscenes with space
