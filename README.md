@@ -7,7 +7,7 @@ The main plan for this significant change to the genre is to remove the mash the
 it with an invigorating fighting game, integrated into the RPG in the exact same way as the existing battle system.
 
 ## Story
-You’re trapped, left alone to rot in your cell for the rest of your days. That is, until the voice of a mysterious woman sounds through the equipment grafted to your skull. Time to escape, she says. Alarms are wailing, but guards are rarely to be seen. And what was that just then? Some kind of scratching behind that door? Pick up a sword. Like she said, it’s time to escape.
+You’re trapped, left alone to rot in your cell for the rest of your days. That is, until the voice of a mysterious woman sounds through the equipment grafted to your skull. Time to escape, she says. Alarms are wailing, but guards aren't anywhere to be seen. And what was that just then? Some kind of scratching behind that door? Pick up a sword. Like she said, it’s time to escape.
 
 ## Development
 Starting about 10 days late, we produced the first alpha version of the game with some rudimentary elements of the top-down TPG mode functioning and a few pieces of concept art on the 12th of this month.
