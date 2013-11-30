@@ -1,6 +1,6 @@
 ![Prisoner Prototype Banner](https://dl.dropboxusercontent.com/s/j9lzijq4y4ghy8y/banner.jpg?dl=1&token_hash=AAGYpc3249HP4EDgW54AH7ZPpfq7KMLcNWxm7lUXuNqMxA)
 ## Description
-A game by the Blind Dingoes, 'The Prisoner' is a game designed to change the idea of standard RPG fighting systems
+A game by the Blind Dingoes; 'The Prisoner', is a game designed to change the idea of standard RPG fighting systems
 from a menu driven experience to more engaging styles by adding a new game with a beat 'em up style!
 
 The main plan for this significant change to the genre is to remove the mash the 'a' button mentality and replace
