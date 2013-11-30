@@ -1,6 +1,9 @@
 import flash.display.MovieClip;
+CurrentFrame = 3;
 
 stop();
+
+var madeLevel:Boolean = false;
 
 CreateBtn.addEventListener(MouseEvent.CLICK, CreateBtn_Press);
 CreateBtn.addEventListener(MouseEvent.ROLL_OVER, CreateBtn_RollOver);
@@ -11,7 +14,7 @@ function CreateBtn_Press(ev:MouseEvent):void{
 	GetTextBtn.x = 833;
 	GetTextBtn.y = 907;
 	CreateNewWorld(NameInputTxt.text, int(WidthInputTxt.text), int(HeightInputTxt.text));
-	this.addEventListener(Event.ENTER_FRAME,LevelCreatorUpdateGame);
+	madeLevel = true;
 }
 function CreateBtn_RollOver(ev:MouseEvent):void{
 }
@@ -30,6 +33,7 @@ fileRef.addEventListener(Event.COMPLETE, onFileLoaded);
 fileRef.load();
 }
 function onFileLoaded(e:Event):void {
+	madeLevel = true;
 	GreyOutMc.x = 800;
 	GreyOutMc.y = 800;
 	GetTextBtn.x = 833;
@@ -65,7 +69,7 @@ function onFileLoaded(e:Event):void {
 		LevelCreatorCurrentOverworldLevel[3][selectorI] = new Array(LevelCreatorCurrentOverworldLevel[2]);
 		for(var selectorJ:uint = 0; selectorJ < LevelCreatorCurrentOverworldLevel[2]; selectorJ++){
 			var TempMostInnerArray:Array = ST_11_InnerThing[selectorI][selectorJ].split(",");
-			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ] = new Array(11);
+			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ] = new Array(13);
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][0] = new int(TempMostInnerArray[0]);
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][1] = new int(TempMostInnerArray[1]);
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][3] = new int(TempMostInnerArray[2]);
@@ -75,6 +79,9 @@ function onFileLoaded(e:Event):void {
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][8] = new int(TempMostInnerArray[6]);
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][9] = new int(TempMostInnerArray[7]);
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][10] = new String(TempMostInnerArray[8]);
+			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][11] = new int(TempMostInnerArray[9]);
+			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][12] = new String(TempMostInnerArray[10]);
+			
 			var tempGridItem:DevGridTest = new DevGridTest();
 			addChild(tempGridItem);
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2] = tempGridItem;
@@ -82,6 +89,16 @@ function onFileLoaded(e:Event):void {
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x = MostLeft + (selectorI*gridSizeLevelCreator)  - gridSizeLevelCreator/2;
 			LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].y = MostTop + (selectorJ*gridSizeLevelCreator)  - gridSizeLevelCreator/2;
 			SendMovieClipToBack(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2]);
+			
+			if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][10] != ""){
+				LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].transform.colorTransform = Monster_color;
+			} else {
+				if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][11] == 1){
+					LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].transform.colorTransform = Above_color;
+				} else {
+					LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].transform.colorTransform = No_color;
+				}
+			}
 			if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x>=800){
 				LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
 			}
@@ -93,7 +110,7 @@ function onFileLoaded(e:Event):void {
 }
 
 
-
+this.addEventListener(Event.ENTER_FRAME,LevelCreatorUpdateGame);
 
 SneakyMouseMc.addEventListener(MouseEvent.CLICK, SneakyMouseMc_Press);
 function SneakyMouseMc_Press(ev:MouseEvent):void{
@@ -141,9 +158,12 @@ function ImgChooseDownBtn_RollOut(ev:MouseEvent):void{
 var BlockSelected:int = 1;
 ChooserMc.x = ImgChoose1MC.x;
 ChooserMc.y = ImgChoose1MC.y;
-var ChooserState:int = 2;
-var MaxChooserState:int = 13;
+var ChooserState:int = 1;
+var MaxChooserState:int = ImgChoose3MC.totalFrames;
+trace(ImgChoose3MC.totalFrames);
+
 updateChooser(true);
+updateChooser(false);
 
 MonsterCheckBox.gotoAndStop(1);
 var MonsterCheck:int = 0;
@@ -151,6 +171,10 @@ MoveToCheckBox.gotoAndStop(1);
 var MoveToCheck:int = 0;
 IsWallCheckBox.gotoAndStop(1);
 var IsWallCheck:int = 0;
+AbovePlayerCheckBox.gotoAndStop(1);
+var OnRoofCheck:int = 0;
+CutSceneCheckBox.gotoAndStop(1);
+var CutToSceneCheck:int = 0;
 MonsterCheckBox.addEventListener(MouseEvent.CLICK, MonsterCheckBox_Press);
 function MonsterCheckBox_Press(ev:MouseEvent):void{
 	if(MonsterCheck == 0){
@@ -181,13 +205,33 @@ function IsWallCheckBox_Press(ev:MouseEvent):void{
 		IsWallCheckBox.gotoAndStop(1);
 	}
 }
+CutSceneCheckBox.addEventListener(MouseEvent.CLICK, CutSceneCheckBox_Press);
+function CutSceneCheckBox_Press(ev:MouseEvent):void{
+	if(CutToSceneCheck == 0){
+		CutToSceneCheck = 1;
+		CutSceneCheckBox.gotoAndStop(2);
+	} else {
+		CutToSceneCheck = 0;
+		CutSceneCheckBox.gotoAndStop(1);
+	}
+}
+AbovePlayerCheckBox.addEventListener(MouseEvent.CLICK, AbovePlayerCheckBox_Press);
+function AbovePlayerCheckBox_Press(ev:MouseEvent):void{
+	if(OnRoofCheck == 0){
+		OnRoofCheck = 1;
+		AbovePlayerCheckBox.gotoAndStop(2);
+	} else {
+		OnRoofCheck = 0;
+		AbovePlayerCheckBox.gotoAndStop(1);
+	}
+}
 
 function updateChooser(ChooserUp:Boolean):void{
 	if(ChooserUp){
 		if(ChooserState+7 < MaxChooserState)
 		ChooserState ++;
 	} else {
-		if(ChooserState > 2)
+		if(ChooserState > 1)
 		ChooserState --;
 	}
 	ImgChoose1MC.gotoAndStop(ChooserState);
@@ -198,8 +242,27 @@ function updateChooser(ChooserUp:Boolean):void{
 	ImgChoose6MC.gotoAndStop(ChooserState+5);
 	ImgChoose7MC.gotoAndStop(ChooserState+6);
 	ImgChoose8MC.gotoAndStop(ChooserState+7);
+	
+	IsWallCheckBox_Check(BlockSelected);
 }
 
+
+var Above_color:ColorTransform = new ColorTransform();
+Above_color.blueOffset = 100;
+Above_color.greenOffset = 0;
+Above_color.redOffset = -100; 
+var No_color:ColorTransform = new ColorTransform();
+No_color.blueOffset = 0;
+No_color.greenOffset = 0;
+No_color.redOffset = 0; 
+var Finder_color:ColorTransform = new ColorTransform();
+Finder_color.blueOffset = 0;
+Finder_color.greenOffset = -100;
+Finder_color.redOffset = 0; 
+var Monster_color:ColorTransform = new ColorTransform();
+Monster_color.blueOffset = -100;
+Monster_color.greenOffset = 0;
+Monster_color.redOffset = 100; 
 
 
 
@@ -225,7 +288,7 @@ function CreateNewWorld(worldName:String, worldWidth:int, worldHeight:int):void 
 	for(i = 0; i<LevelCreatorCurrentOverworldLevel[1]; i++){
 		var TempArray:Array = new Array(LevelCreatorCurrentOverworldLevel[2]);
 		for(j = 0; j<LevelCreatorCurrentOverworldLevel[2]; j++){
-			TempArray[j] = new Array(11);
+			TempArray[j] = new Array(13);
 			/*
 			0: Passable - Int
 			1: Block Type - Int
@@ -238,6 +301,8 @@ function CreateNewWorld(worldName:String, worldWidth:int, worldHeight:int):void 
 			8: Y Co-ordinate of new Level - Int
 			9: Base Light - Int
 			10: MonsterName - String
+			11: Above Player - Int
+			12: Cutscene - String
 			*/
 			TempArray[j][1] = new int(0);
 			var tempGridItem:DevGridTest = new DevGridTest();
@@ -259,8 +324,10 @@ function CreateNewWorld(worldName:String, worldWidth:int, worldHeight:int):void 
 			TempArray[j][7] = new int(0);
 			TempArray[j][8] = new int(0);
 			TempArray[j][9] = new int(0);
+			TempArray[j][11] = new int(0);
 			TempArray[j][6] = new String("");
 			TempArray[j][10] = new String("");
+			TempArray[j][12] = new String("");
 		}
 		LevelCreatorCurrentOverworldLevel[3][i] = TempArray;
 	
@@ -268,18 +335,33 @@ function CreateNewWorld(worldName:String, worldWidth:int, worldHeight:int):void 
 
 }
 
+this.addEventListener(Event.ENTER_FRAME,HideVerifier);
+var timeVerifierSeen = 0;
+function HideVerifier(event:Event):void {
+	if(timeVerifierSeen != 0){
+		timeVerifierSeen --;
+	} else {
+		VerifierMc.x = -200;
+	}
+}
+
+var SelectedBlockGridX:int = -1;
+var SelectedBlockGridY:int = 0;
+
 function ChangeBlock(InputMouseX:int, InputMouseY:int):void{
 	//trace(MostLeft);
 	//trace(MostTop);
 	//trace(Math.floor((InputMouseX - MostLeft + 40)/80) + " , " + Math.floor((InputMouseY - MostTop + 40)/80));
 	var GridX:int = Math.floor((InputMouseX - MostLeft + 40)/80);
 	var GridY:int =  Math.floor((InputMouseY - MostTop + 40)/80);
+
+
 	if((GridX < 0) || (GridY < 0) || (GridX >= LevelCreatorCurrentOverworldLevel[1]) || (GridY >= LevelCreatorCurrentOverworldLevel[2])){
 		//OUTSIDE OF BOUNDS!
 	} else {
 		//UpdateGridPart!
-		LevelCreatorCurrentOverworldLevel[3][GridX][GridY]
-		/*
+		//LevelCreatorCurrentOverworldLevel[3][GridX][GridY]
+			/*
 			0: Passable - Int
 			1: Block Type - Int
 			2: Image Of Block - MovieClip
@@ -291,24 +373,73 @@ function ChangeBlock(InputMouseX:int, InputMouseY:int):void{
 			8: Y Co-ordinate of new Level - Int
 			9: Base Light - Int
 			10: MonsterName - String
+			11: Above Player - Int
+			12: Cutscene - String
 			*/
-		LevelCreatorCurrentOverworldLevel[3][GridX][GridY][9] = int(BaseLight_txt.text);
-		LevelCreatorCurrentOverworldLevel[3][GridX][GridY][4] = int(LightEmitted_txt.text);
-		LevelCreatorCurrentOverworldLevel[3][GridX][GridY][0] = int(IsWallCheck);
-		LevelCreatorCurrentOverworldLevel[3][GridX][GridY][3] = int(LightEmitted_txt.text);
-		LevelCreatorCurrentOverworldLevel[3][GridX][GridY][1] = int(ChooserState + BlockSelected - 1);
-		LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].gotoAndStop(LevelCreatorCurrentOverworldLevel[3][GridX][GridY][1]);
-		if(MoveToCheck == 1){
-			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][6] = LvlName_txt.text;
-			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][7] = int(LvlPosX_txt.text);
-			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][8] = int(LvlPosY_txt.text);
+		
+		if(BlockSelected == (-1)){
+			if(SelectedBlockGridX >= 0){
+				if(LevelCreatorCurrentOverworldLevel[3][SelectedBlockGridX][SelectedBlockGridY][10] != ""){
+					LevelCreatorCurrentOverworldLevel[3][SelectedBlockGridX][SelectedBlockGridY][2].transform.colorTransform = Monster_color;
+				} else {
+					if(LevelCreatorCurrentOverworldLevel[3][SelectedBlockGridX][SelectedBlockGridY][11] == 1){
+						LevelCreatorCurrentOverworldLevel[3][SelectedBlockGridX][SelectedBlockGridY][2].transform.colorTransform = Above_color;
+					} else {
+						LevelCreatorCurrentOverworldLevel[3][SelectedBlockGridX][SelectedBlockGridY][2].transform.colorTransform = No_color;
+				}
+			}
+			}
+			
+			
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].transform.colorTransform = Finder_color;
+			XFinder_txt.text = "x= " + GridX;
+			YFinder_txt.text = "y= " + GridY;
+			SelectedBlockGridX = GridX;
+			SelectedBlockGridY = GridY;
 		} else {
-			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][6] = "";
-		}
-		if(MonsterCheck == 1){
-			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][10] = MonsterName_txt.text;
-		} else {
-			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][10] = "";
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][11] = int(OnRoofCheck);
+			
+			//Monster_color
+			
+			
+			VerifierMc.x = LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].x;
+			VerifierMc.y = LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].y;
+			timeVerifierSeen = 5;
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][9] = int(BaseLight_txt.text);
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][4] = int(LightEmitted_txt.text);
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][0] = int(IsWallCheck);
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][3] = int(LightEmitted_txt.text);
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][1] = int(ChooserState + BlockSelected - 1);
+			LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].gotoAndStop(LevelCreatorCurrentOverworldLevel[3][GridX][GridY][1]);
+			if(MoveToCheck == 1){
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][6] = LvlName_txt.text;
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][7] = int(LvlPosX_txt.text);
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][8] = int(LvlPosY_txt.text);
+			} else {
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][6] = "";
+			}
+			if(MonsterCheck == 1){
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][10] = MonsterName_txt.text;
+			} else {
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][10] = "";
+			}
+			if(CutToSceneCheck == 1){
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][12] = CutSceneName_txt.text;
+			} else {
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][12] = "";
+			}
+			
+			if(LevelCreatorCurrentOverworldLevel[3][GridX][GridY][10] != ""){
+				LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].transform.colorTransform = Monster_color;
+			} else {
+				if(LevelCreatorCurrentOverworldLevel[3][GridX][GridY][11] == 1){
+					LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].transform.colorTransform = Above_color;
+				} else {
+					LevelCreatorCurrentOverworldLevel[3][GridX][GridY][2].transform.colorTransform = No_color;
+				}
+			}
+			
+			
 		}
 	}
 	//trace(Math.floor((InputMouseY - MostTop + 40)/80));
@@ -317,57 +448,114 @@ function ChangeBlock(InputMouseX:int, InputMouseY:int):void{
 
 
 
+function BlockPassableEasy(Chosen:int):int {
+	if(Chosen == 1){
+		return (1-ImgChoose1MC.IsPassableBlock);
+	}
+	if(Chosen == 2){
+		return (1-ImgChoose2MC.IsPassableBlock);
+	}
+	if(Chosen == 3){
+		return (1-ImgChoose3MC.IsPassableBlock);
+	}
+	if(Chosen == 4){
+		return (1-ImgChoose4MC.IsPassableBlock);
+	}
+	if(Chosen == 5){
+		return (1-ImgChoose5MC.IsPassableBlock);
+	}
+	if(Chosen == 6){
+		return (1-ImgChoose6MC.IsPassableBlock);
+	}
+	if(Chosen == 7){
+		return (1-ImgChoose7MC.IsPassableBlock);
+	}
+	if(Chosen == 8){
+		return (1-ImgChoose8MC.IsPassableBlock);
+	}
+	return -1;
+}
 
+
+
+function IsWallCheckBox_Check(UBlockSelected:int):void{
+	if(BlockPassableEasy(UBlockSelected) != IsWallCheck){
+		if(IsWallCheck == 0){
+			IsWallCheck = 1;
+			IsWallCheckBox.gotoAndStop(2);
+		} else {
+			IsWallCheck = 0;
+			IsWallCheckBox.gotoAndStop(1);
+		}
+	}
+}
 
 ImgChoose1MC.addEventListener(MouseEvent.CLICK, ImgChoose1MC_Press);
 function ImgChoose1MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose1MC.x;
 	ChooserMc.y = ImgChoose1MC.y;
 	BlockSelected = 1;
+	IsWallCheckBox_Check(BlockSelected);
 }
 ImgChoose2MC.addEventListener(MouseEvent.CLICK, ImgChoose2MC_Press);
 function ImgChoose2MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose2MC.x;
 	ChooserMc.y = ImgChoose2MC.y;
 	BlockSelected = 2;
+	IsWallCheckBox_Check(BlockSelected);
 }
 ImgChoose3MC.addEventListener(MouseEvent.CLICK, ImgChoose3MC_Press);
 function ImgChoose3MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose3MC.x;
 	ChooserMc.y = ImgChoose3MC.y;
 	BlockSelected = 3;
+	IsWallCheckBox_Check(BlockSelected);
 }
 ImgChoose4MC.addEventListener(MouseEvent.CLICK, ImgChoose4MC_Press);
 function ImgChoose4MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose4MC.x;
 	ChooserMc.y = ImgChoose4MC.y;
 	BlockSelected = 4;
+	IsWallCheckBox_Check(BlockSelected);
 }
 ImgChoose5MC.addEventListener(MouseEvent.CLICK, ImgChoose5MC_Press);
 function ImgChoose5MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose5MC.x;
 	ChooserMc.y = ImgChoose5MC.y;
 	BlockSelected = 5;
+	IsWallCheckBox_Check(BlockSelected);
 }
 ImgChoose6MC.addEventListener(MouseEvent.CLICK, ImgChoose6MC_Press);
 function ImgChoose6MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose6MC.x;
 	ChooserMc.y = ImgChoose6MC.y;
 	BlockSelected = 6;
+	IsWallCheckBox_Check(BlockSelected);
 }
 ImgChoose7MC.addEventListener(MouseEvent.CLICK, ImgChoose7MC_Press);
 function ImgChoose7MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose7MC.x;
 	ChooserMc.y = ImgChoose7MC.y;
 	BlockSelected = 7;
+	IsWallCheckBox_Check(BlockSelected);
 }
 ImgChoose8MC.addEventListener(MouseEvent.CLICK, ImgChoose8MC_Press);
 function ImgChoose8MC_Press(ev:MouseEvent):void{
 	ChooserMc.x = ImgChoose8MC.x;
 	ChooserMc.y = ImgChoose8MC.y;
 	BlockSelected = 8;
+	IsWallCheckBox_Check(BlockSelected);
 }
 
+
+
+GetPositionOfBlockBTN.addEventListener(MouseEvent.CLICK, GetPositionOfBlockBTN_Press);
+function GetPositionOfBlockBTN_Press(ev:MouseEvent):void{
+	ChooserMc.x = GetPositionOfBlockBTN.x;
+	ChooserMc.y = GetPositionOfBlockBTN.y;
+	BlockSelected = -1;
+}
+//GetPositionOfBlockMC
 /*
 	var LevelCreatorCurrentOverworldLevel:Array = new Array();
 	//Overworld Level Name
@@ -414,6 +602,10 @@ function SaveLevel():void{
 			SplitArray += LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][9];
 			SplitArray += ",";
 			SplitArray += LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][10];
+			SplitArray += ",";
+			SplitArray += LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][11];
+			SplitArray += ",";
+			SplitArray += LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][12];
 			/*
 			0: Passable - Boolean
 			1: Block Type - Int
@@ -445,44 +637,48 @@ function SaveLevel():void{
 
 function LevelCreatorUpdateGame(event:Event):void
 {
-	if(isKeyDown(83)){
-		MostTop += 10;
-	}
-	if(isKeyDown(87)){
-		MostTop -= 10;
-	}
-	if(isKeyDown(65)){
-		MostLeft -= 10;
-	}
-	if(isKeyDown(68)){
-		MostLeft += 10;
-	}
-	for(var selectorI:uint = 0; selectorI < LevelCreatorCurrentOverworldLevel[1]; selectorI++){
-		for(var selectorJ:uint = 0; selectorJ < LevelCreatorCurrentOverworldLevel[2]; selectorJ++){
-	LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x = MostLeft + (selectorI*gridSizeLevelCreator)  - gridSizeLevelCreator/2;
-	LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].y = MostTop + (selectorJ*gridSizeLevelCreator)  - gridSizeLevelCreator/2;
-			if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x>=800){
-				LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
-			} else if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x<=-100){
-				LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
-			} else if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].y>=800){
-				LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
-			} else if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].y<=-100){
-				LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
-			} else {
-				LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = true;
+	//BlackLight
+	SendMovieClipToBack(BlackLight);
+	if(madeLevel){
+		if(isKeyDown(83)){
+			MostTop -= 10;
+		}
+		if(isKeyDown(87)){
+			MostTop += 10;
+		}
+		if(isKeyDown(65)){
+			MostLeft += 10;
+		}
+		if(isKeyDown(68)){
+			MostLeft -= 10;
+		}
+		for(var selectorI:uint = 0; selectorI < LevelCreatorCurrentOverworldLevel[1]; selectorI++){
+			for(var selectorJ:uint = 0; selectorJ < LevelCreatorCurrentOverworldLevel[2]; selectorJ++){
+		LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x = MostLeft + (selectorI*gridSizeLevelCreator)  - gridSizeLevelCreator/2;
+		LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].y = MostTop + (selectorJ*gridSizeLevelCreator)  - gridSizeLevelCreator/2;
+				if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x>=800){
+					LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
+				} else if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].x<=-100){
+					LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
+				} else if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].y>=800){
+					LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
+				} else if(LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].y<=-100){
+					LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = false;
+				} else {
+					LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].visible = true;
+				}
 			}
 		}
+		
+		/*
+		Key Pressed: w (character code: 87)
+		Key Pressed: a (character code: 65)
+		Key Pressed: s (character code: 83)
+		Key Pressed: d (character code: 68)
+		
+		MostLeft
+		*/
 	}
-	
-	/*
-	Key Pressed: w (character code: 87)
-	Key Pressed: a (character code: 65)
-	Key Pressed: s (character code: 83)
-	Key Pressed: d (character code: 68)
-	
-	MostLeft
-	*/
 }
 
 
