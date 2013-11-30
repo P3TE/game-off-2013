@@ -16,7 +16,7 @@ Starting about 10 days late, we produced the first alpha version of the game wit
 Now the end of the month has arrived and here are a couple of new screenshots of the game as it is now!
 (insert screenshots here ;D)
 
-Despite the team being composed of two musicians and an "ametuer singer", we are yet to add our soulful tunes to the game.
+Despite the team being composed of two musicians and an "ametuer singer", we are yet to add our soulful tunes to the game. Including the font used, this entire endevour has been done from scratch by us during this month.
 
 ## Instructions
 Top-down RPG mode:
