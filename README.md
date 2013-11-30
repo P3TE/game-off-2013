@@ -7,7 +7,7 @@ The main plan for this significant change to the genre is to remove the mash the
 it with an invigorating fighting game, integrated into the RPG in the exact same way as the existing battle system.
 
 ## Story
-You’re trapped, left alone to rot in your cell for the rest of your days. That is, until the voice of a mysterious woman sounds through the equipment grafted to your skull. Time to escape, she says. Alarms are wailing, but guards aren't anywhere to be seen. And what was that just then? Some kind of scratching behind that door? Pick up a sword. Like she said, it’s time to escape.
+You’re trapped, left alone to rot in your cell for the rest of your days. That is, until the voice of a mysterious woman sounds through the equipment grafted to your skull. Time to escape, she says. Alarms are wailing, but guards are rarely to be seen. And what was that just then? Some kind of scratching behind that door? Pick up a sword. Like she said, it’s time to escape.
 
 ## Development
 Starting about 10 days late, we produced the first alpha version of the game with some rudimentary elements of the top-down TPG mode functioning and a few pieces of concept art on the 12th of this month.
@@ -15,7 +15,11 @@ Starting about 10 days late, we produced the first alpha version of the game wit
 ![Prisoner Concept Art](https://dl.dropboxusercontent.com/s/1rk4hagb6kaof9b/concept_art.jpg?dl=1&token_hash=AAF_lZEvSXKRjAwtc-LDRFfJ5W_FOZnKR7J3WPS61NbSVQ)![First Alpha](https://dl.dropboxusercontent.com/s/rl0ov42hgisix2o/12_11-small.jpg?dl=1&token_hash=AAG5jc-PE5OIIyd8jGrFci1D2pluBhuTWQ3rL3NxTG06XQ)
 
 Now the end of the month has arrived and here are a couple of new screenshots of the game as it is now!
-(insert screenshots here ;D)
+![RPG1](https://dl.dropboxusercontent.com/s/m0ta8unyozvap72/rpg1.jpg?dl=1&token_hash=AAEmOPwnkHwhMS-ZOjzFv0Rq7ifdyJdMCttsvZTvLjcIzg)
+
+![RPG2](https://dl.dropboxusercontent.com/s/zgboun5zjojsago/rpg2.jpg?dl=1&token_hash=AAEN85XSPNv4-Ool9ymXqJM4NTU-TVOodytqpfAXB9pDGg)
+
+![battle1](https://dl.dropboxusercontent.com/s/fbzl50e7t2wdu7r/battle1.jpg?dl=1&token_hash=AAEY_EKHMq4-ICUn9mKBBcQ_85JFduHwd-z8LBn6O8Y6MA)
 
 Despite the team being composed of two musicians and an "ametuer singer", we are yet to add our soulful tunes to the game. Including the font used, this entire endevour has been done from scratch by us during this month.
 
