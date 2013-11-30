@@ -1,4 +1,3 @@
-
 var keyArray:Array = new Array();
 var iFF:Number;
 var jFF:Number;
