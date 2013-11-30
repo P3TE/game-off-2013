@@ -1,11 +1,23 @@
+//trace("-Frame == 2-");
 stop();
+CurrentFrame = 2;
+//trace("1");
 import flash.display.MovieClip;
 
 //stage.stageWidth
 //stage.stageHeight
 //DevGridTest
-
+ChangeCounterMc.Change_Meter_txt.text = ("Change: " + Player_Change);
+PF_PlayerMaxHealth = 10 + Player_Change;
+//SuperTempGridX
+//SuperTempGridY
+/*
 var gridSize:int = 80;
+var playerPosX:Number = 6*gridSize;
+var playerPosY:Number = 1*gridSize;
+var playerGridX:Number = 6;
+var playerGridY:Number = 1;
+*/
 
 //var keyArray:Array = new Array();
 var i:Number;
@@ -18,11 +30,41 @@ for (i=0; i<222; i++)
 */
 //stage.addEventListener(KeyboardEvent.KEY_DOWN,checkKeysDown);
 //stage.addEventListener(KeyboardEvent.KEY_UP,checkKeysUp);
+//trace("--2--");
+var MoveMonsterMax:int = 12;
+var MoveMonster:int = MoveMonsterMax;
+
+var CutScenesAlreadyWatched:Array = new Array();
+
+
+var Darken_colour:ColorTransform = new ColorTransform();
+Darken_colour.alphaOffset = -256;
+var Normal_colour:ColorTransform = new ColorTransform();
+Normal_colour.alphaOffset = 0;
+
+var BlackDarken_colour:ColorTransform = new ColorTransform();
+BlackDarken_colour.alphaOffset = 0;
+
+//LevelCreatorCurrentOverworldLevel[3][selectorI][selectorJ][2].transform.colorTransform = Above_color;
+//trace("--3--");
 this.addEventListener(Event.ENTER_FRAME,UpdateGame);
+//trace("--4--");
+var inCutScene:String = "";
+var fightMonster:String = "";
+var moveToNewLevel:String = "";
+var newLevelX:int = 0;
+var newLevelY:int = 0;
 
-
+var CutSceneContents:Array;
+var LineUpTo:int = 0;
+var SeenName:String = "";
+var SeenText:String = "";
+var SpacePressedDuringCutScene:Boolean = false;
 
 var CurrentOverworldLevel:Array = new Array();
+var MistMap:Array = new Array();
+var MistResolution:int = 2;
+//trace("--5--");
 /*
 //Overworld Level Name
 CurrentOverworldLevel[0] = new String("Dev Test Map");
@@ -34,17 +76,16 @@ CurrentOverworldLevel[2] = new int(100);
 CurrentOverworldLevel[3] = new Array(CurrentOverworldLevel[1]);
 */
 
-//trace("Hmmm1");
+////trace("Hmmm1");
 
-var playerPosX:Number = 1*gridSize;
-var playerPosY:Number = 1*gridSize;
-var playerGridX:Number = 1;
-var playerGridY:Number = 1;
+
 var PlayerMoving:Boolean = false;
 var PlayerDirection:int = 1;
 var PlayerMoveSpeed:Number = 6.25;
 var PlayerMoveTime:Number = 100;
 var PlayerBaseMoveTime:Number = 100;
+var PlayerLight = 256;
+//trace("--6--");
 /*
 Direction:
 1 - Down
@@ -59,6 +100,188 @@ PlayerIMG.y = stage.stageHeight/2 - gridSize/2;
 PlayerIMG.gotoAndStop(1);
 addChild(PlayerIMG);
 
+
+//trace("--7--");
+var dimmingAmount = 30;
+
+var ReccursiveLightToUpdate:Array = new Array();
+var TempReccursiveLightToUpdate:Array = new Array();
+//trace("--8--");
+function updateLighting():void {
+	ReccursiveLightToUpdate = new Array();
+	for(var selectorI:uint = 0; selectorI < CurrentOverworldLevel[1]; selectorI++){
+		for(var selectorJ:uint = 0; selectorJ < CurrentOverworldLevel[2]; selectorJ++){
+			if(CurrentOverworldLevel[3][selectorI][selectorJ][4] > 0){
+				lightBlockOfMist(selectorI*MistResolution, selectorJ*MistResolution, CurrentOverworldLevel[3][selectorI][selectorJ][4]);
+				lightBlockOfMist(selectorI*MistResolution + 1, selectorJ*MistResolution, CurrentOverworldLevel[3][selectorI][selectorJ][4]);
+				lightBlockOfMist(selectorI*MistResolution + 1, selectorJ*MistResolution + 1, CurrentOverworldLevel[3][selectorI][selectorJ][4]);
+				lightBlockOfMist(selectorI*MistResolution, selectorJ*MistResolution + 1, CurrentOverworldLevel[3][selectorI][selectorJ][4]);
+			} else {
+				MistMap[selectorI*MistResolution][selectorJ*MistResolution][2] = 0;
+				MistMap[selectorI*MistResolution + 1][selectorJ*MistResolution][2] = 0;
+				MistMap[selectorI*MistResolution + 1][selectorJ*MistResolution + 1][2] = 0;
+				MistMap[selectorI*MistResolution][selectorJ*MistResolution + 1][2] = 0;
+			}
+		}
+	}
+	lightImmediateArea();
+	updateLightingReccursivePart();
+	
+	for(var B1_selectorI:uint = 0; B1_selectorI < CurrentOverworldLevel[1]; B1_selectorI++){
+		for(var B1_selectorJ:uint = 0; B1_selectorJ < CurrentOverworldLevel[2]; B1_selectorJ++){
+			CurrentOverworldLevel[3][B1_selectorI][B1_selectorJ][2].visible = false;
+		}
+	}
+	for(var MASwitch:uint = 0; MASwitch < MonsterArray[MonsterArrayPosition][1].length; MASwitch++){
+		MonsterArray[MonsterArrayPosition][1][MASwitch][3].visible = false;
+	}
+	for(var A1_selectorI:uint = 0; A1_selectorI < CurrentOverworldLevel[1]*MistResolution; A1_selectorI++){
+		for(var A1_selectorJ:uint = 0; A1_selectorJ < CurrentOverworldLevel[2]*MistResolution; A1_selectorJ++){
+			if(MistMap[A1_selectorI][A1_selectorJ][2] > 0){
+				var XMakeVisible:int = Math.floor(A1_selectorI/2);
+				var YMakeVisible:int = Math.floor(A1_selectorJ/2);
+				for(var MBSwitch:uint = 0; MBSwitch < MonsterArray[MonsterArrayPosition][1].length; MBSwitch++){
+					var SXMonPos:int = MonsterArray[MonsterArrayPosition][1][MBSwitch][1];
+					var SYMonPos:int = MonsterArray[MonsterArrayPosition][1][MBSwitch][2];
+					if((XMakeVisible == SXMonPos) && (YMakeVisible == SYMonPos)){
+						MonsterArray[MonsterArrayPosition][1][MBSwitch][3].visible = true;
+					}
+				}
+				CurrentOverworldLevel[3][XMakeVisible][YMakeVisible][2].visible = true;
+				MistMap[XMakeVisible*MistResolution][YMakeVisible*MistResolution][1].visible = true;
+				MistMap[XMakeVisible*MistResolution + 1][YMakeVisible*MistResolution][1].visible = true;
+				MistMap[XMakeVisible*MistResolution + 1][YMakeVisible*MistResolution + 1][1].visible = true;
+				MistMap[XMakeVisible*MistResolution][YMakeVisible*MistResolution + 1][1].visible = true;
+				Normal_colour.alphaOffset = -MistMap[A1_selectorI][A1_selectorJ][2];
+				MistMap[A1_selectorI][A1_selectorJ][1].transform.colorTransform = Normal_colour;
+				Normal_colour.alphaOffset = 0;
+			} else {
+				MistMap[A1_selectorI][A1_selectorJ][1].transform.colorTransform = BlackDarken_colour;
+			}
+		}
+	}
+	for(var C1_selectorI:uint = 0; C1_selectorI < CurrentOverworldLevel[1]; C1_selectorI++){
+		for(var C1_selectorJ:uint = 0; C1_selectorJ < CurrentOverworldLevel[2]; C1_selectorJ++){
+			if(CurrentOverworldLevel[3][C1_selectorI][C1_selectorJ][2].visible == false){
+				MistMap[C1_selectorI*MistResolution][C1_selectorJ*MistResolution][1].visible = false;
+				MistMap[C1_selectorI*MistResolution + 1][C1_selectorJ*MistResolution][1].visible = false;
+				MistMap[C1_selectorI*MistResolution + 1][C1_selectorJ*MistResolution + 1][1].visible = false;
+				MistMap[C1_selectorI*MistResolution][C1_selectorJ*MistResolution + 1][1].visible = false;
+			}
+		}
+	}
+}
+
+function lightBlockOfMist(GridX:int, GridY:int, Brightness:int){
+	if(checkInBounds(GridX,GridY)){
+				var tempInternalArray01:Array = new Array(2);
+				tempInternalArray01[0] = GridX; //GridX\\
+				tempInternalArray01[1] = GridY; //GridY\\
+				ReccursiveLightToUpdate[ReccursiveLightToUpdate.length] = tempInternalArray01;
+				////trace(MistMap[GridX][GridY][2]);
+				MistMap[GridX][GridY][2] = Brightness;
+	}
+}
+
+function lightImmediateArea():void{
+	lightBlockOfMist(playerGridX*MistResolution, playerGridY*MistResolution, 256);
+	lightBlockOfMist(playerGridX*MistResolution + 1, playerGridY*MistResolution, 256);
+	lightBlockOfMist(playerGridX*MistResolution + 1, playerGridY*MistResolution + 1, 256);
+	lightBlockOfMist(playerGridX*MistResolution, playerGridY*MistResolution + 1, 256);
+	//MistMap[playerGridX*MistResolution][playerGridY*MistResolution][2] = 256;
+	//MistMap[playerGridX*MistResolution + 1][playerGridY*MistResolution][2] = 256;
+	//MistMap[playerGridX*MistResolution + 1][playerGridY*MistResolution + 1][2] = 256;
+	//MistMap[playerGridX*MistResolution][playerGridY*MistResolution + 1][2] = 256;
+}
+
+function checkInBounds(GridX:int, GridY:int):Boolean{
+	if((GridX < 0) || (GridY < 0) || (GridX >= CurrentOverworldLevel[1] * MistResolution) || (GridY >= CurrentOverworldLevel[2] * MistResolution)){
+		//OUT OF BOUNDS!\\
+		return false;
+	}
+	return true;
+}
+//trace("--9--");
+/*
+function AddToReccursiveLightToUpdate(GridX:int, GridY:int):void{
+	if(checkInBounds(GridX, GridY)){
+		////trace(GridX);
+		////trace(GridY);
+		CurrentOverworldLevel[3][GridX][GridY][3] = 256;
+		var tempInternalArray02:Array = new Array(2);
+		tempInternalArray02[0] = GridX; //GridX\\
+		tempInternalArray02[1] = GridY; //GridY\\
+		ReccursiveLightToUpdate[ReccursiveLightToUpdate.length] = tempInternalArray02;
+	}
+}
+*/
+
+function updateLightingReccursivePart():void {
+	TempReccursiveLightToUpdate = new Array();
+	for(var placeHolderTempI:uint; placeHolderTempI < ReccursiveLightToUpdate.length; placeHolderTempI++){
+		var IGridX = ReccursiveLightToUpdate[placeHolderTempI][0]; //X\\
+		var JGridY = ReccursiveLightToUpdate[placeHolderTempI][1]; //Y\\
+		if(MistMap[IGridX][JGridY][0]){
+			UpdateAroundTile(true, IGridX, JGridY, MistMap[IGridX][JGridY][2]);
+		} else {
+			UpdateAroundTile(false, IGridX, JGridY, MistMap[IGridX][JGridY][2]);
+		}
+	}
+	ReccursiveLightToUpdate = TempReccursiveLightToUpdate;
+	if(ReccursiveLightToUpdate.length > 0){
+		updateLightingReccursivePart();
+	} else {
+		//Finished Lighting :)
+	}
+}
+
+function UpdateAroundTile(Passable:Boolean, GridX:int, GridY:int, NewLight:int){
+	UpdateCertainTile(Passable,GridX+1 ,GridY ,NewLight);
+	UpdateCertainTile(Passable,GridX-1 ,GridY ,NewLight);
+	UpdateCertainTile(Passable,GridX ,GridY+1 ,NewLight);
+	UpdateCertainTile(Passable,GridX ,GridY-1 ,NewLight);
+}
+
+function UpdateCertainTile(Passable:Boolean, GridX:int, GridY:int, NewLight:int){
+	var tempInternalArray:Array = new Array(2);
+	tempInternalArray[0] = GridX; //GridX\\
+	tempInternalArray[1] = GridY; //GridY\\
+	if(LegitTileToPassLightOnTo(Passable, tempInternalArray[0], tempInternalArray[1])){
+		if(Passable){
+			if(NewLight - dimmingAmount > MistMap[GridX][GridY][2]){
+				MistMap[GridX][GridY][2] = NewLight - dimmingAmount;
+				if(NewLight - dimmingAmount > dimmingAmount){
+					TempReccursiveLightToUpdate[TempReccursiveLightToUpdate.length] = tempInternalArray;
+				}
+			}
+		} else {
+			if(NewLight - 2*dimmingAmount > MistMap[GridX][GridY][2]){
+				MistMap[GridX][GridY][2] = NewLight - dimmingAmount*2;
+					if(NewLight - dimmingAmount*2 > dimmingAmount*2){
+						TempReccursiveLightToUpdate[TempReccursiveLightToUpdate.length] = tempInternalArray;
+					}
+			}
+		}
+	}
+}
+
+
+
+function LegitTileToPassLightOnTo(Passable:Boolean, GridX:int, GridY:int):Boolean{
+	if((GridX < 0) || (GridY < 0) || (GridX >= CurrentOverworldLevel[1] * MistResolution) || (GridY >= CurrentOverworldLevel[2] * MistResolution)){
+		//OUT OF BOUNDS!\\
+	} else {
+		if(!Passable){
+			if(!MistMap[GridX][GridY][0]){
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
+	return false;
+}
+
 /*
 for(i = 0; i<CurrentOverworldLevel[1]; i++){
 	
@@ -67,26 +290,30 @@ for(i = 0; i<CurrentOverworldLevel[1]; i++){
 	for(j = 0; j<CurrentOverworldLevel[2]; j++){
 		TempArray[j] = new Array(9);
 		//**\\
-		0: Passable - Int
-		1: Block Type - Int
-		2: Image Of Block - MovieClip
-		3: Current Visibility - Int
-		4: Emited Light - Int
-		5: Visibility Image - MovieClip
-		6: Level Taken To - String
-		7: X Co-ordinate of new Level - Int
-		8: Y Co-ordinate of new Level - Int
+			0: Passable - Int
+			1: Block Type - Int
+			2: Image Of Block - MovieClip
+			3: Current Visibility - Int
+			4: Emited Light - Int
+			5: Visibility Image - MovieClip
+			6: Level Taken To - String
+			7: X Co-ordinate of new Level - Int
+			8: Y Co-ordinate of new Level - Int
+			9: Base Light - Int
+			10: MonsterName - String
+			11: Above Player - Int
+			12: Cutscene - String
 		//**\\
 		TempArray[j][0] = new int(0);
 		TempArray[j][1] = new int(Math.floor(Math.random()*3 + 2));
-		//trace(TempArray[j][0]);
-		//trace(TempArray[j][1]);
+		////trace(TempArray[j][0]);
+		////trace(TempArray[j][1]);
 		if(TempArray[j][1] == 2){
 			TempArray[j][0] = 1;
-			//trace(i + " - " + j);
+			////trace(i + " - " + j);
 		}
-		//trace(TempArray[j][0]);
-		//trace(TempArray[j][1]);
+		////trace(TempArray[j][0]);
+		////trace(TempArray[j][1]);
 		/*
 		if(TempArray[j][0] == 1){
 			var tempGridItem:DevGridTest = new DevGridTest();
@@ -104,14 +331,18 @@ for(i = 0; i<CurrentOverworldLevel[1]; i++){
 */
 //createLevelGrid();
 //MoveLevelGrid();
-
+//trace("--10--");
 var Player:Array = new Array();
 //Player's Name
 Player[0] = new String("Bob555!");
 //Player's GridX
-Player[0] = new int(1);
+Player[0] = new int(6);
 //Player's GridY
 Player[1] = new int(1);
+
+CutSceneBoxMC.visible = false;
+//CutSceneBoxMC.Text_Dy_Txt
+//CutSceneBoxMC.Name_Dy_Txt
 
 /*
 for(var i:uint = 0; i<Height; i++){
@@ -123,41 +354,51 @@ for(var i:uint = 0; i<Height; i++){
 }
 */
 
-//trace(CurrentOverworldLevel.length);
-////trace(CurrentOverworldLevel);
-//trace(stage.stageWidth);
-//trace(stage.stageHeight);
-//trace(CurrentOverworldLevel[3]);
+////trace(CurrentOverworldLevel.length);
+//////trace(CurrentOverworldLevel);
+////trace(stage.stageWidth);
+////trace(stage.stageHeight);
+////trace(CurrentOverworldLevel[3]);
+//trace("--11--");
 
-
-var myTextLoader:URLLoader = new URLLoader();
-
-myTextLoader.addEventListener(Event.COMPLETE, onLoaded);
-
-function onLoaded(e:Event):void {
+var myLevelLoader:URLLoader = new URLLoader();
+myLevelLoader.addEventListener(Event.COMPLETE, onLevelLoaded);
+//trace("--12--");
+function onLevelLoaded(e:Event):void {
 	
 	var TempCurrentOverworldLevel:Array = String(e.target.data).split(/\n/);
 
-	 
+	
 	//Overworld Level Name
 	CurrentOverworldLevel[0] = new String(TempCurrentOverworldLevel[0]);
 	//Overworld Level Width
 	CurrentOverworldLevel[1] = new int(TempCurrentOverworldLevel[1]);
+	
+
+	
 	//Overworld Level Height
 	CurrentOverworldLevel[2] = new int(TempCurrentOverworldLevel[2]);
 	
 	 var ST_1_InnerArray:Array = TempCurrentOverworldLevel[3].split("[");
 	 //CurrentOverworldLevel
-	 //trace(" ---- ");
-	 //trace(ST_1_InnerArray);
-	 //trace(ST_1_InnerArray[0]);
-	 //trace(ST_1_InnerArray[1]);
+	 ////trace(" ---- ");
+	 ////trace(ST_1_InnerArray);
+	 ////trace(ST_1_InnerArray[0]);
+	 ////trace(ST_1_InnerArray[1]);
 	 
 	 var ST_11_InnerThing:Array = new Array(CurrentOverworldLevel[1]);
 	 for(var selectorI2:uint = 0; selectorI2 < CurrentOverworldLevel[1]; selectorI2++){
 		 ST_11_InnerThing[selectorI2] = ST_1_InnerArray[selectorI2].split("]");		 
 	 }
 	 
+	 MistMap = new Array(CurrentOverworldLevel[1] * MistResolution);
+	 for(var MistSelectorI:uint = 0; MistSelectorI < CurrentOverworldLevel[1] * MistResolution; MistSelectorI++){
+		 MistMap[MistSelectorI] = new Array(CurrentOverworldLevel[2] * MistResolution);
+		 	for(var MistSelectorJ:uint = 0; MistSelectorJ < CurrentOverworldLevel[2] * MistResolution; MistSelectorJ++){
+				MistMap[MistSelectorI][MistSelectorJ] = new Array(3);
+				MistMap[MistSelectorI][MistSelectorJ][2] = 256;
+			}
+	 }
 
 	//Overworld Level Array
 	CurrentOverworldLevel[3] = new Array(CurrentOverworldLevel[1]);
@@ -165,7 +406,7 @@ function onLoaded(e:Event):void {
 		CurrentOverworldLevel[3][selectorI] = new Array(CurrentOverworldLevel[2]);
 		for(var selectorJ:uint = 0; selectorJ < CurrentOverworldLevel[2]; selectorJ++){
 			var TempMostInnerArray:Array = ST_11_InnerThing[selectorI][selectorJ].split(",");
-			CurrentOverworldLevel[3][selectorI][selectorJ] = new Array(11);
+			CurrentOverworldLevel[3][selectorI][selectorJ] = new Array(13);
 			CurrentOverworldLevel[3][selectorI][selectorJ][0] = new int(TempMostInnerArray[0]);
 			CurrentOverworldLevel[3][selectorI][selectorJ][1] = new int(TempMostInnerArray[1]);
 			CurrentOverworldLevel[3][selectorI][selectorJ][3] = new int(TempMostInnerArray[2]);
@@ -175,6 +416,21 @@ function onLoaded(e:Event):void {
 			CurrentOverworldLevel[3][selectorI][selectorJ][8] = new int(TempMostInnerArray[6]);
 			CurrentOverworldLevel[3][selectorI][selectorJ][9] = new int(TempMostInnerArray[7]);
 			CurrentOverworldLevel[3][selectorI][selectorJ][10] = new String(TempMostInnerArray[8]);
+			CurrentOverworldLevel[3][selectorI][selectorJ][11] = new String(TempMostInnerArray[9]);
+			CurrentOverworldLevel[3][selectorI][selectorJ][12] = new String(TempMostInnerArray[10]);
+			
+			if(CurrentOverworldLevel[3][selectorI][selectorJ][0] == 1){
+				MistMap[selectorI*MistResolution][selectorJ*MistResolution][0] = true;
+				MistMap[selectorI*MistResolution + 1][selectorJ*MistResolution][0] = true;
+				MistMap[selectorI*MistResolution + 1][selectorJ*MistResolution + 1][0] = true;
+				MistMap[selectorI*MistResolution][selectorJ*MistResolution + 1][0] = true;
+			} else {
+				MistMap[selectorI*MistResolution][selectorJ*MistResolution][0] = false;
+				MistMap[selectorI*MistResolution + 1][selectorJ*MistResolution][0] = false;
+				MistMap[selectorI*MistResolution + 1][selectorJ*MistResolution + 1][0] = false;
+				MistMap[selectorI*MistResolution][selectorJ*MistResolution + 1][0] = false;
+			}
+			
 			/*
 			var tempGridItem:DevGridTest = new DevGridTest();
 			addChild(tempGridItem);
@@ -193,61 +449,262 @@ function onLoaded(e:Event):void {
 			*/
 		}
 	}
+	
+		/*
+	var MoveMonsterMax:int = 15;
+	var MoveMonster:int = MoveMonsterMax;
+	
+	var MonsterArray = new Array(0);
+	var MonsterArrayPosition:int = 0;
+	*/
+	 //MonsterArray[]
+	 //LoadedFile
+	 ////trace(" Start ");
+	 ////trace(LoadedFile);
+	 ////trace(MonsterArray.length);
+	 var isANewMonsterArray:Boolean = true;
+	 for(var MonsterArraySwitcher:uint = 0; MonsterArraySwitcher < MonsterArray.length; MonsterArraySwitcher++){
+		 ////trace(MonsterArray[MonsterArraySwitcher][0]);
+		 if(MonsterArray[MonsterArraySwitcher][0] == LoadedFile){
+			 isANewMonsterArray = false;
+			 MonsterArrayPosition = MonsterArraySwitcher;
+			 ////trace("GOOD NEWS!");
+			 ////trace(MonsterArrayPosition);
+			 for(var MCSwitch:uint = 0; MCSwitch < MonsterArray[MonsterArrayPosition][1].length; MCSwitch++){
+				var TempMonsterNoise2:WhiteNoiseMC = new WhiteNoiseMC();
+				addChild(TempMonsterNoise2);
+				MonsterArray[MonsterArrayPosition][1][MCSwitch][3] = TempMonsterNoise2;
+			 }
+		 }
+	 }
+	 ////trace(" Mid ");
+	 if(isANewMonsterArray){
+		 MonsterArrayPosition = MonsterArray.length;
+		 MonsterArray[MonsterArrayPosition] = new Array(2);
+		 MonsterArray[MonsterArrayPosition][0] = LoadedFile;
+		 MonsterArray[MonsterArrayPosition][1] = new Array();
+		 for(var MonsterSelectorI:uint = 0; MonsterSelectorI < CurrentOverworldLevel[1]; MonsterSelectorI++){
+			for(var MonsterSelectorJ:uint = 0; MonsterSelectorJ < CurrentOverworldLevel[2]; MonsterSelectorJ++){
+				if(CurrentOverworldLevel[3][MonsterSelectorI][MonsterSelectorJ][10] != ""){
+					var TempMonsterArray = new Array(4);
+					TempMonsterArray[0] = CurrentOverworldLevel[3][MonsterSelectorI][MonsterSelectorJ][10];
+					TempMonsterArray[1] = MonsterSelectorI;
+					TempMonsterArray[2] = MonsterSelectorJ;
+					var TempMonsterNoise:WhiteNoiseMC = new WhiteNoiseMC();
+					addChild(TempMonsterNoise);
+					TempMonsterArray[3] = TempMonsterNoise;
+					MonsterArray[MonsterArrayPosition][1][MonsterArray[MonsterArrayPosition][1].length] = TempMonsterArray;
+				}
+			}
+		 }
+	 }
+	 /*
+	//trace(" -7- ");
+	//trace(MonsterArray[MonsterArrayPosition]);
+	//trace(" --- ");
+	//trace(MonsterArray[MonsterArrayPosition][0]);
+	//trace(" --- ");
+	//trace(MonsterArray[MonsterArrayPosition][1][0]);
+	//trace(" --- ");
+	//trace(MonsterArray[MonsterArrayPosition][1][1]);
+	*/
+	
+	if(CurrentOverworldLevel[3][playerGridX][playerGridY][12] != ""){
+		LoadNewCutsceneTime(CurrentOverworldLevel[3][playerGridX][playerGridY][12]);
+	}
+	//WhiteNoiseMC
+	
 	createLevelGrid();
 }
-var LoadedFile:String = "FirstCustomLevel";
-myTextLoader.load(new URLRequest(LoadedFile + ".txt"));
+//trace("--13--");
+//var LoadedFile:String = "FirstCustomLevel";
+myLevelLoader.load(new URLRequest("Levels/" + LoadedFile + ".txt"));
 
+//trace("--14--");
+//BREAK\\
+
+
+var myCutSceneLoader:URLLoader = new URLLoader();
+myCutSceneLoader.addEventListener(Event.COMPLETE, onCutSceneLoaded);
+//trace("--15--");
+function onCutSceneLoaded(e:Event):void {
+	//trace(e.target.data);
+	var tempCutSceneContents:Array = (e.target.data).split(/\n/);
+	////trace(tempCutSceneContents);
+	CutSceneContents = new Array(tempCutSceneContents.length);
+	for( var I_The_Selector:uint = 0; I_The_Selector < tempCutSceneContents.length; I_The_Selector ++){
+		CutSceneContents[I_The_Selector] = clearDelimeters(tempCutSceneContents[I_The_Selector]);
+		//var rex:RegExp = /[\s]*/gim;
+		//CutSceneContents[I_The_Selector].replace(/ /,"asdasdasd"); 
+		if(I_The_Selector/2 == Math.ceil(I_The_Selector/2)){
+			CutSceneContents[I_The_Selector] = CutSceneContents[I_The_Selector].replace(" ","\n");
+		} else {
+			if(CutSceneContents[I_The_Selector].length > 40){
+				////trace(CutSceneContents[I_The_Selector]);
+				CutSceneContents[I_The_Selector] = CutSceneContents[I_The_Selector].substr(0, 60) + (CutSceneContents[I_The_Selector].substr(60, 60)).replace(" ","\n") + (CutSceneContents[I_The_Selector].substr(120, 60)).replace(" ","\n");
+			}
+		}
+		////trace(CutSceneContents[I_The_Selector]);
+	}
+	////trace(CutSceneContents);
+	LineUpTo = 0;
+	/*
+	var TempCutsceneLevel:Array = String(e.target.data).split(/\n/);
+	CutSceneContents = new Array(TempCutsceneLevel.length);
+	for( var I_The_Selector:uint = 0; I_The_Selector < TempCutsceneLevel.length; I_The_Selector ++){
+		CutSceneContents[I_The_Selector] = TempCutsceneLevel.split(/,/);
+		//trace(CutSceneContents[I_The_Selector]);
+	}
+	*/
+	
+}
+//trace("--16--");
+inCutScene = "";
+//trace("--17--");
+var LoadedCutScene:String = "";
+//myCutSceneLoader.load(new URLRequest("CutScenes/" + LoadedCutScene + ".txt"));
+function LoadNewCutsceneTime(LoadName:String){
+	var AlreadySeen = false;
+	for(var CutI:uint = 0; CutI < CutScenesAlreadyWatched.length; CutI++){
+		if(CutScenesAlreadyWatched[CutI] == LoadName){
+			AlreadySeen = true;
+		}
+	}
+	if(!AlreadySeen){
+		CutScenesAlreadyWatched[CutScenesAlreadyWatched.length] = LoadName;
+		inCutScene = LoadName;
+		LineUpTo = 0;
+		loadCutScene();
+	}
+}
 
 function createLevelGrid():void{
 	var MostLeft:int = stage.stageWidth/2 - (playerPosX);
 	var MostTop:int = stage.stageHeight/2 - (playerPosY);
+	
+	
+	for(var MSwitch:uint = 0; MSwitch < MonsterArray[MonsterArrayPosition][1].length; MSwitch++){
+		
+		var XMonPos:int = MonsterArray[MonsterArrayPosition][1][MSwitch][1];
+		var YMonPos:int = MonsterArray[MonsterArrayPosition][1][MSwitch][2];
+		MonsterArray[MonsterArrayPosition][1][MSwitch][3].x = MostLeft + (XMonPos*gridSize)  - gridSize/2;
+		MonsterArray[MonsterArrayPosition][1][MSwitch][3].y = MostTop + (YMonPos*gridSize)  - gridSize/2;
+		
+	}
+	
+	
 	for(i = 0; i<CurrentOverworldLevel[1]; i++){
 	
 	for(j = 0; j<CurrentOverworldLevel[2]; j++){
-			if(CurrentOverworldLevel[3][i][j][1] != 0){
-				////trace("OMGOMGOMGOMGOMOGMOGMOGMOGMODFMGIOPSDUISDHGSGYIESIGBSHIGBHYISERHYISGIYSEGBHSBGBSEHGILSERVUIS");
+			
+				//////trace("OMGOMGOMGOMGOMOGMOGMOGMOGMODFMGIOPSDUISDHGSGYIESIGBSHIGBHYISERHYISGIYSEGBHSBGBSEHGILSERVUIS");
 				var tempGridItem:DevGridTest = new DevGridTest();
 				tempGridItem.gotoAndStop(CurrentOverworldLevel[3][i][j][1]);
 				addChild(tempGridItem);
 				CurrentOverworldLevel[3][i][j][2] = tempGridItem;
 				CurrentOverworldLevel[3][i][j][2].x = MostLeft + (i*gridSize)  - gridSize/2;
 				CurrentOverworldLevel[3][i][j][2].y = MostTop + (j*gridSize)  - gridSize/2;
+				
+				if(CurrentOverworldLevel[3][i][j][11] == 1){
+					bringToFront(CurrentOverworldLevel[3][i][j][2]);
+					CurrentOverworldLevel[3][i][j][2].alpha = 0.6;
+				} else {
+					SendMovieClipToBack(CurrentOverworldLevel[3][i][j][2]);
+					CurrentOverworldLevel[3][i][j][2].alpha = 1;
+				}
+				
+				
+				CreateMist(i*MistResolution, j*MistResolution, MostLeft, MostTop);
+				CreateMist(i*MistResolution + 1, j*MistResolution, MostLeft, MostTop);
+				CreateMist(i*MistResolution + 1, j*MistResolution + 1, MostLeft, MostTop);
+				CreateMist(i*MistResolution, j*MistResolution + 1, MostLeft, MostTop);
+				
+				if(CurrentOverworldLevel[3][i][j][1] == 0){
+					CurrentOverworldLevel[3][i][j][2].alpha = 0;
+				}
+				
+				
 				//if(Math.random() < 0.90){
 				//CurrentOverworldLevel[3][i][j][2].visible = false;
 				//}
 				//var MC:MovieClip = new MovieClip();
 				//MC.alpha = 0;
 			}
-		}
+		
 	}
-	bringToFront(PlayerIMG);
+	//bringToFront(PlayerIMG);
+	updateLighting();
 }
+
+//trace("--19--");
+
+function CreateMist(MistGridX:int, MistGridY:int, MostLeft:int, MostTop:int){
+	var tempMist:MistMC = new MistMC();
+	addChild(tempMist);
+	MistMap[MistGridX][MistGridY][1] = tempMist;
+	MistMap[MistGridX][MistGridY][1].x = MostLeft + (MistGridX*(gridSize/2))  - gridSize/2;
+	MistMap[MistGridX][MistGridY][1].y = MostTop + (MistGridY*(gridSize/2))  - gridSize/2;
+	bringToFront(tempMist);
+}
+
 
 function MoveLevelGrid():void{
 	var MostLeft:int = stage.stageWidth/2 - (playerPosX);
 	var MostTop:int = stage.stageHeight/2 - (playerPosY);
+	
+	for(var MSwitch:uint = 0; MSwitch < MonsterArray[MonsterArrayPosition][1].length; MSwitch++){
+		
+		var XMonPos:int = MonsterArray[MonsterArrayPosition][1][MSwitch][1];
+		var YMonPos:int = MonsterArray[MonsterArrayPosition][1][MSwitch][2];
+		MonsterArray[MonsterArrayPosition][1][MSwitch][3].x = MostLeft + (XMonPos*gridSize)  - gridSize/2;
+		MonsterArray[MonsterArrayPosition][1][MSwitch][3].y = MostTop + (YMonPos*gridSize)  - gridSize/2;
+		
+	}
+	
+	for(var MistGridX:uint = 0; MistGridX < CurrentOverworldLevel[1]*MistResolution; MistGridX++){
+		for(var MistGridY:uint = 0; MistGridY < CurrentOverworldLevel[2]*MistResolution; MistGridY++){
+			MistMap[MistGridX][MistGridY][1].x = MostLeft + (MistGridX*(gridSize/2))  - gridSize/2;
+			MistMap[MistGridX][MistGridY][1].y = MostTop + (MistGridY*(gridSize/2))  - gridSize/2;
+			/*
+			MistMap[MistGridX][MistGridY][1].visible = false;
+			if((MostLeft + MistGridX*gridSize/2) < (0-(gridSize))){
+				//////trace("Error On the left, It can't be seen!");
+			} else if((MostLeft + MistGridX*gridSize/2) > (stage.stageWidth+(gridSize))){
+				//////trace("Error On the right, It can't be seen!");
+			} else if((MostTop + MistGridY*gridSize/2) < (0-(gridSize))){
+				//trace("I'm glad!");
+				//////trace("Error On the top, It can't be seen!");
+			} else if((MostTop + MistGridY*gridSize/2) > (stage.stageHeight+(gridSize))){
+				//trace("I'm glad!");
+				//////trace("Error On the bottom, It can't be seen!");
+			} else {
+				MistMap[MistGridX][MistGridY][1].visible = true;
+			}
+			*/
+		}
+	}
+	
 	for(i = 0; i<CurrentOverworldLevel[1]; i++){
 	
 	for(j = 0; j<CurrentOverworldLevel[2]; j++){
 		//TempArray[j] = new Array(9);
-		////trace(CurrentOverworldLevel[3][i][j][2]);
+		//////trace(CurrentOverworldLevel[3][i][j][2]);
 		var BlockOnGrid:Boolean = false;
 		if((MostLeft + i*gridSize) < (0-(gridSize))){
-			////trace("Error On the left, It can't be seen!");
+			//////trace("Error On the left, It can't be seen!");
 		} else if((MostLeft + i*gridSize) > (stage.stageWidth+(gridSize))){
-			////trace("Error On the right, It can't be seen!");
+			//////trace("Error On the right, It can't be seen!");
 		} else if((MostTop + j*gridSize) < (0-(gridSize))){
-			////trace("Error On the top, It can't be seen!");
+			//////trace("Error On the top, It can't be seen!");
 		} else if((MostTop + j*gridSize) > (stage.stageHeight+(gridSize))){
-			////trace("Error On the bottom, It can't be seen!");
+			//////trace("Error On the bottom, It can't be seen!");
 		} else {
 			BlockOnGrid = true;
-			CurrentOverworldLevel[3][i][j][2].visible = true;
-			////trace(CurrentOverworldLevel[3][i][j][1]);
+			//CurrentOverworldLevel[3][i][j][2].visible = true;
+			//////trace(CurrentOverworldLevel[3][i][j][1]);
 			if(CurrentOverworldLevel[3][i][j][1] != 0){
 				if(!CurrentOverworldLevel[3][i][j][2]){
-					//trace("OMGOMGOMGOMGOMOGMOGMOGMOGMODFMGIOPSDUISDHGSGYIESIGBSHIGBHYISERHYISGIYSEGBHSBGBSEHGILSERVUIS");
+					////trace("OMGOMGOMGOMGOMOGMOGMOGMOGMODFMGIOPSDUISDHGSGYIESIGBSHIGBHYISERHYISGIYSEGBHSBGBSEHGILSERVUIS");
 				//var tempGridItem:DevGridTest = new DevGridTest();
 				//tempGridItem.gotoAndStop(CurrentOverworldLevel[3][i][j][1]);
 				//addChild(tempGridItem)
@@ -266,43 +723,47 @@ function MoveLevelGrid():void{
 				if (CurrentOverworldLevel[3][i][j][2].parent){
     				CurrentOverworldLevel[3][i][j][2].parent.removeChild(CurrentOverworldLevel[3][i][j][2]); 
 				} else {
-					//trace("OMGOMGOMGOMGOMOGMOGMOGMOGMODFMGIOPSDUISDHGSGYIESIGBSHIGBHYISERHYISGIYSEGBHSBGBSEHGILSERVUIS");
+					////trace("OMGOMGOMGOMGOMOGMOGMOGMOGMODFMGIOPSDUISDHGSGYIESIGBSHIGBHYISERHYISGIYSEGBHSBGBSEHGILSERVUIS");
 				}
 				//removeChild(CurrentOverworldLevel[3][i][j][2]);
 			}
 		}
 		*/
 		if(CurrentOverworldLevel[3][i][j][2]){
-			////trace("well!");
+			//////trace("well!");
 			
 		}
 		//var playerPosX:int = 5;
 		//gridSize
 		//stage.stageWidth
 		/*
-		0: Passable - Boolean
-		1: Block Type - Int
-		2: Image Of Block - MovieClip
-		3: Current Visibility - Int
-		4: Emited Light - Int
-		5: Visibility Image - MovieClip
-		6: Level Taken To - String
-		7: X Co-ordinate of new Level - Int
-		8: Y Co-ordinate of new Level - Int
-		*/
+			0: Passable - Int
+			1: Block Type - Int
+			2: Image Of Block - MovieClip
+			3: Current Visibility - Int
+			4: Emited Light - Int
+			5: Visibility Image - MovieClip
+			6: Level Taken To - String
+			7: X Co-ordinate of new Level - Int
+			8: Y Co-ordinate of new Level - Int
+			9: Base Light - Int
+			10: MonsterName - String
+			11: Above Player - Int
+			12: Cutscene - String
+			*/
 	}
 	}
 		
 		
-	bringToFront(PlayerIMG);
+	//bringToFront(PlayerIMG);
 }
 
 /*
 function checkKeysDown(event:KeyboardEvent):void
 {
-	////trace("event.keyCode = " + event.keyCode);
+	//////trace("event.keyCode = " + event.keyCode);
 	keyArray[event.keyCode][1] = true;
-	trace("OMG");
+	//trace("OMG");
 }
 function checkKeysUp(event:KeyboardEvent):void
 {
@@ -313,82 +774,302 @@ function isKeyDown(X)
 	return keyArray[X][1];
 }
 */
+
+function MoveDirectionPossible(CurrentXPos:int, CurrentYPos:int, directionMove:String):Boolean{
+	var CheckPosX:int = 0;
+	var CheckPosY:int = 0;
+	if(directionMove == 'left'){
+		CheckPosX = CurrentXPos-1;
+		CheckPosY = CurrentYPos;
+	} else if(directionMove == 'right'){
+		CheckPosX = CurrentXPos+1;
+		CheckPosY = CurrentYPos;
+	} else if(directionMove == 'up'){
+		CheckPosX = CurrentXPos;
+		CheckPosY = CurrentYPos-1;
 		
+	} else if(directionMove == 'down'){
+		CheckPosX = CurrentXPos;
+		CheckPosY = CurrentYPos+1;
+	} 
+	MonsterMove = false;
+	if(MonsterCheckInBounds(CheckPosX, CheckPosY)){
+		if(CurrentOverworldLevel[3][CheckPosX][CheckPosY][0] != 0){
+			var MonsterMove = true;
+			for(var MASwitch:uint = 0; MASwitch < MonsterArray[MonsterArrayPosition][1].length; MASwitch++){
+				var SXMonPos:int = MonsterArray[MonsterArrayPosition][1][MASwitch][1];
+				var SYMonPos:int = MonsterArray[MonsterArrayPosition][1][MASwitch][2];
+				if((CheckPosX == SXMonPos) && (CheckPosY == SYMonPos)){
+					MonsterMove = false;
+				}
+			}
+		}
+	}
+	return (MonsterMove);
+}
+
+function MonsterCheckInBounds(GridX:int, GridY:int):Boolean{
+	if((GridX < 0) || (GridY < 0) || (GridX >= CurrentOverworldLevel[1]) || (GridY >= CurrentOverworldLevel[2])){
+		//OUT OF BOUNDS!\\
+		return false;
+	}
+	return true;
+}
+
+function MoveIfPossibleMonster(CurrentXPos:int, CurrentYPos:int, AxisMove:String, PosNeg:int, PositionInArray:int):Boolean{
+	var directionMove:String;
+	if(AxisMove == 'x'){
+		if(PosNeg > 0){
+			directionMove = 'right';
+		} else {
+			directionMove = 'left';
+		}
+	} else {
+		//AxisMove == 'y'
+		if(PosNeg > 0){
+			directionMove = 'down';
+		} else {
+			directionMove = 'up';
+		}
+	}
+	if(MoveDirectionPossible(CurrentXPos, CurrentYPos, directionMove)){
+		if(directionMove == 'left'){
+			MonsterArray[MonsterArrayPosition][1][PositionInArray][1] = CurrentXPos-1;
+		} else if(directionMove == 'right'){
+			MonsterArray[MonsterArrayPosition][1][PositionInArray][1] = CurrentXPos+1;
+		} else if(directionMove == 'up'){
+			MonsterArray[MonsterArrayPosition][1][PositionInArray][2] = CurrentYPos-1;
+		} else if(directionMove == 'down'){
+			MonsterArray[MonsterArrayPosition][1][PositionInArray][2] = CurrentYPos+1;
+		} 
+		
+		var MostLeft:int = stage.stageWidth/2 - (playerPosX);
+		var MostTop:int = stage.stageHeight/2 - (playerPosY);
+		
+		MonsterArray[MonsterArrayPosition][1][PositionInArray][3].x = MostLeft + MonsterArray[MonsterArrayPosition][1][PositionInArray][1]*gridSize - gridSize/2;
+		MonsterArray[MonsterArrayPosition][1][PositionInArray][3].y = MostTop + MonsterArray[MonsterArrayPosition][1][PositionInArray][2]*gridSize - gridSize/2;
+
+		return true;
+	}
+	return false;
+}
+
+function MoveAllMonsters():void {
+	////trace("There can only be one!");
+	for(var MSwitch:uint = 0; MSwitch < MonsterArray[MonsterArrayPosition][1].length; MSwitch++){
+		
+		var XMonPos:int = MonsterArray[MonsterArrayPosition][1][MSwitch][1];
+		var YMonPos:int = MonsterArray[MonsterArrayPosition][1][MSwitch][2];
+		////trace(MonsterArray[MonsterArrayPosition][1][MSwitch][1]);
+		////trace(MonsterArray[MonsterArrayPosition][1][MSwitch][2]);
+		
+		var XDistance:int = playerGridX - XMonPos;
+		var YDistance:int = playerGridY - YMonPos;
+		if(XDistance == 0 && YDistance == 0){
+			fightMonster = MonsterArray[MonsterArrayPosition][1][MSwitch][0];
+			RemoveMovieClip(MonsterArray[MonsterArrayPosition][1][MSwitch][3]);
+			MonsterArray[MonsterArrayPosition][1].splice(MSwitch, 1);
+		} else {
+			if(Math.sqrt((XDistance*XDistance) + (YDistance*YDistance)) < 2.8){
+				if(XDistance == 0){
+					////trace("Hmm");
+					MoveIfPossibleMonster(XMonPos, YMonPos, 'y', YDistance, MSwitch);
+				} else if(YDistance == 0){
+					////trace("Hmm2");
+					MoveIfPossibleMonster(XMonPos, YMonPos, 'x', XDistance, MSwitch);
+				} else {
+					if(Math.abs(XDistance) > Math.abs(YDistance)){
+						if(MoveIfPossibleMonster(XMonPos, YMonPos, 'x', XDistance, MSwitch)){
+							////trace("Hmm3");
+						} else {
+							////trace("Hmm4");
+							MoveIfPossibleMonster(XMonPos, YMonPos, 'y', YDistance, MSwitch);
+						}
+					} else if (Math.abs(XDistance) < Math.abs(YDistance)){
+						if(MoveIfPossibleMonster(XMonPos, YMonPos, 'y', YDistance, MSwitch)){
+							////trace("Hmm5");
+						} else {
+							MoveIfPossibleMonster(XMonPos, YMonPos, 'x', XDistance, MSwitch);
+							////trace("Hmm6");
+						}
+					} else {
+						//XDistance == YDistance
+						var RandomDirection:int = Math.round(Math.random());
+						if(RandomDirection == 0){
+							if(MoveIfPossibleMonster(XMonPos, YMonPos, 'x', XDistance, MSwitch)){
+								////trace("Hmm7");
+							} else {
+								MoveIfPossibleMonster(XMonPos, YMonPos, 'y', YDistance, MSwitch);
+								////trace("Hmm8");
+							}
+						} else {
+							if(MoveIfPossibleMonster(XMonPos, YMonPos, 'y', YDistance, MSwitch)){
+								////trace("Hmm9");
+							} else {
+								MoveIfPossibleMonster(XMonPos, YMonPos, 'x', XDistance, MSwitch);
+								////trace("Hmm10");
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 function UpdateGame(event:Event):void
 {
-	//trace("Humm");
-	//trace(PlayerMoving);
-	if(!PlayerMoving){
-		handleMovement();
-	} else {
-		//gridSize
-		//playerPosX
-		
-		PlayerMoveTime -= PlayerMoveSpeed;
-		
-		if(PlayerDirection == 1){
-			//trace("bob!");
-			//playerPosY += (PlayerMoveSpeed/100) * gridSize;
-			
-			//playerPosY = (Math.floor(playerPosX/gridSize)) * gridSize
-			playerPosY = playerGridY * gridSize + (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
-		} else if(PlayerDirection == 2){
-			//trace("bob2!");
-			//playerPosY -= (PlayerMoveSpeed/100) * gridSize;
-			playerPosY = playerGridY * gridSize - (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
-		} else if(PlayerDirection == 3){
-			//trace("bob3!");
-			//playerPosX -= (PlayerMoveSpeed/100) * gridSize;
-			//PlayerBaseMoveTime
-			playerPosX = playerGridX * gridSize - (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
-			//playerGridX
-		} else if(PlayerDirection == 4){
-			//trace("bob4!");
-			//playerPosX += (PlayerMoveSpeed/100) * gridSize;
-			playerPosX = playerGridX * gridSize + (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
+	if(CurrentFrame == 2){
+		////trace("Humm");
+		////trace(PlayerMoving);
+		if(inCutScene == ""){
+			CutSceneBoxMC.visible = false;
 		}
-		//trace("Nextbob1!");
-		//trace(PlayerMoveTime);
-		//trace(PlayerMoveSpeed);
-		
-		//trace(PlayerMoveTime);
-		if(PlayerMoveTime<=0){
-			//trace("Nextbob2!");
-			PlayerMoveTime = 100;
-			playerGridX = (Math.round(playerPosX/gridSize));
-			playerGridY = (Math.round(playerPosY/gridSize));
-			playerPosX = (Math.round(playerPosX/gridSize)) * gridSize;
-			playerPosY = (Math.round(playerPosY/gridSize)) * gridSize;
-			PlayerMoving = false;
-			PlayerIMG.gotoAndStop(PlayerDirection);
-			if(CurrentOverworldLevel[3][playerGridX][playerGridY][6] != ""){
-				LoadNewLevel(CurrentOverworldLevel[3][playerGridX][playerGridY][6], CurrentOverworldLevel[3][playerGridX][playerGridY][7], CurrentOverworldLevel[3][playerGridX][playerGridY][8]);
+		if(inCutScene != ""){
+			if(CutSceneContents != null){
+				CutSceneBoxMC.visible = true;
+				bringToFront(CutSceneBoxMC);
+				SeenName = CutSceneContents[LineUpTo*2];
+				if(SeenText.length < CutSceneContents[LineUpTo*2 + 1].length){
+					SeenText = CutSceneContents[LineUpTo*2 + 1].substring(0,SeenText.length+1);
+				}
+				CutSceneBoxMC.Text_Dy_Txt.text = SeenText;
+				CutSceneBoxMC.Name_Dy_Txt.text = SeenName;
+				if(SpacePressedDuringCutScene && !isKeyDown(32)){
+					SpacePressedDuringCutScene = false;
+				}
+				if(!SpacePressedDuringCutScene && isKeyDown(32)){
+					SpacePressedDuringCutScene = true;
+					SeenText = "";
+					////trace(CutSceneContents.length);
+					////trace(LineUpTo*2);
+					if(LineUpTo*2 + 2 < CutSceneContents.length){
+						LineUpTo++;
+					} else {
+						//End CutScene
+						inCutScene = "";
+					}
+				}
+			} else {
+				
 			}
+		} else if (fightMonster != ""){
+			//trace("Time For A Fight With a " + fightMonster);
+			loadMonsterCredentials(fightMonster);
+			RemoveOnScreenObjects();
+			RemoveMovieClip(PlayerIMG);
+			gotoAndStop(4);
+		} else if (moveToNewLevel != ""){
+			var TempLevelNameHolder:String = moveToNewLevel;
+			moveToNewLevel = "";
+			LoadNewLevel(moveToNewLevel, newLevelX, newLevelY);
+		} else {
+			if(MoveMonster <= 0){
+				MoveAllMonsters();
+				MoveMonster = MoveMonsterMax;
+				updateLighting();
+			} else {
+				MoveMonster--;
+			}
+			if(!PlayerMoving){
+				handleMovement();
+			} else {
+				//gridSize
+				//playerPosX
+				
+				PlayerMoveTime -= PlayerMoveSpeed;
+				
+				if(PlayerDirection == 1){
+					////trace("bob!");
+					//playerPosY += (PlayerMoveSpeed/100) * gridSize;
+					
+					//playerPosY = (Math.floor(playerPosX/gridSize)) * gridSize
+					playerPosY = playerGridY * gridSize + (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
+				} else if(PlayerDirection == 2){
+					////trace("bob2!");
+					//playerPosY -= (PlayerMoveSpeed/100) * gridSize;
+					playerPosY = playerGridY * gridSize - (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
+				} else if(PlayerDirection == 3){
+					////trace("bob3!");
+					//playerPosX -= (PlayerMoveSpeed/100) * gridSize;
+					//PlayerBaseMoveTime
+					playerPosX = playerGridX * gridSize - (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
+					//playerGridX
+				} else if(PlayerDirection == 4){
+					////trace("bob4!");
+					//playerPosX += (PlayerMoveSpeed/100) * gridSize;
+					playerPosX = playerGridX * gridSize + (1 - (PlayerMoveTime/PlayerBaseMoveTime)) * gridSize;
+				}
+				////trace("Nextbob1!");
+				////trace(PlayerMoveTime);
+				////trace(PlayerMoveSpeed);
+				
+				////trace(PlayerMoveTime);
+				if(PlayerMoveTime<=0){
+					////trace("Nextbob2!");
+					PlayerMoveTime = 100;
+					playerGridX = (Math.round(playerPosX/gridSize));
+					playerGridY = (Math.round(playerPosY/gridSize));
+					playerPosX = (Math.round(playerPosX/gridSize)) * gridSize;
+					playerPosY = (Math.round(playerPosY/gridSize)) * gridSize;
+					PlayerMoving = false;
+					PlayerIMG.gotoAndStop(PlayerDirection);
+					updateLighting();
+					if(CurrentOverworldLevel[3][playerGridX][playerGridY][12] != ""){
+						LoadNewCutsceneTime(CurrentOverworldLevel[3][playerGridX][playerGridY][12]);
+					}
+					if(CurrentOverworldLevel[3][playerGridX][playerGridY][6] != ""){
+						//LoadNewLevel(CurrentOverworldLevel[3][playerGridX][playerGridY][6], CurrentOverworldLevel[3][playerGridX][playerGridY][7], CurrentOverworldLevel[3][playerGridX][playerGridY][8]);
+						moveToNewLevel = CurrentOverworldLevel[3][playerGridX][playerGridY][6];
+						newLevelX = CurrentOverworldLevel[3][playerGridX][playerGridY][7];
+						newLevelY = CurrentOverworldLevel[3][playerGridX][playerGridY][8];
+					}
+					for(var MBSwitch:uint = 0; MBSwitch < MonsterArray[MonsterArrayPosition][1].length; MBSwitch++){
+						var SXMonPos:int = MonsterArray[MonsterArrayPosition][1][MBSwitch][1];
+						var SYMonPos:int = MonsterArray[MonsterArrayPosition][1][MBSwitch][2];
+						if((playerGridX == SXMonPos) && (playerGridY == SYMonPos)){
+							//Time To Fight!
+							fightMonster = MonsterArray[MonsterArrayPosition][1][MBSwitch][0];
+							RemoveMovieClip(MonsterArray[MonsterArrayPosition][1][MBSwitch][3]);
+							MonsterArray[MonsterArrayPosition][1].splice(MBSwitch, 1);
+						}
+					}
+					if(CurrentOverworldLevel[3][playerGridX][playerGridY][12] == ""
+					   && CurrentOverworldLevel[3][playerGridX][playerGridY][6] == ""
+					   && fightMonster == ""){
+						handleMovement();
+					}
+				}
+		
+				MoveLevelGrid();
+				//trace(Player_Change);
+				////trace("-1-");
+				ChangeCounterMc.Change_Meter_txt.text = ("Change: " + Player_Change);
+				////trace("-2-");
+				//bringToFront(ChangeCounterMc);
+				////trace("-3-");
+			}
+		
 		}
-
-		MoveLevelGrid();
-
 	}
-	
 }
 
 function LoadNewLevel(LevelName:String, GridPosX:int, GridPosY:int):void {
 	
-	for(i = 0; i<CurrentOverworldLevel[1]; i++){
+	RemoveOnScreenObjects();
 	
-		for(j = 0; j<CurrentOverworldLevel[2]; j++){
-			RemoveMovieClip(CurrentOverworldLevel[3][i][j][2]);
-		}
-	}
 	LoadedFile = CurrentOverworldLevel[3][playerGridX][playerGridY][6];
-	myTextLoader.load(new URLRequest(LoadedFile + ".txt"));
+	myLevelLoader.load(new URLRequest("Levels/" + LoadedFile + ".txt"));
 	playerGridX = GridPosX;
 	playerGridY = GridPosY;
 	playerPosX = GridPosX * gridSize;
 	playerPosY = GridPosY * gridSize;
 }
 
+function loadCutScene():void {
+	var LoadedCutScene:String = inCutScene;
+	myCutSceneLoader.load(new URLRequest("CutScenes/" + LoadedCutScene + ".txt"));
+}
 
 function handleMovement():void{
 	/*
@@ -408,16 +1089,16 @@ Key Pressed: d (character code: 68)
 			//CurrentOverworldLevel[1] //Width
 			//CurrentOverworldLevel[2] //Height
 		/*
-		trace((CurrentOverworldLevel[3][playerGridX][playerGridY+1][0] != 1));
-		trace((playerGridY<CurrentOverworldLevel[2]-1));
-		trace("HOHOH")
-		trace(playerGridY);
-		trace(CurrentOverworldLevel[2]-1);
-		trace(CurrentOverworldLevel[3][playerGridX][playerGridY+1][0]);
-		trace("BOOP")
+		//trace((CurrentOverworldLevel[3][playerGridX][playerGridY+1][0] != 1));
+		//trace((playerGridY<CurrentOverworldLevel[2]-1));
+		//trace("HOHOH")
+		//trace(playerGridY);
+		//trace(CurrentOverworldLevel[2]-1);
+		//trace(CurrentOverworldLevel[3][playerGridX][playerGridY+1][0]);
+		//trace("BOOP")
 		
-		trace(CurrentOverworldLevel[2]-1);
-		trace(PlayerMoving);
+		//trace(CurrentOverworldLevel[2]-1);
+		//trace(PlayerMoving);
 		*/
 		PlayerMoving = false;
 		if(isKeyDown(83) && (playerGridY<CurrentOverworldLevel[2]-1)){
@@ -462,5 +1143,25 @@ Key Pressed: d (character code: 68)
 				}
 			}
 		}
-		//trace(PlayerMoving);
+		////trace(PlayerMoving);
 }
+
+
+function RemoveOnScreenObjects(){
+	for(var MBSwitch:uint = 0; MBSwitch < MonsterArray[MonsterArrayPosition][1].length; MBSwitch++){
+		RemoveMovieClip(MonsterArray[MonsterArrayPosition][1][MBSwitch][3]);
+	}
+	for(i = 0; i<CurrentOverworldLevel[1]; i++){
+		for(j = 0; j<CurrentOverworldLevel[2]; j++){
+			RemoveMovieClip(CurrentOverworldLevel[3][i][j][2]);
+		}
+	}
+	for(var MistGridX:uint = 0; MistGridX < CurrentOverworldLevel[1]*MistResolution; MistGridX++){
+		for(var MistGridY:uint = 0; MistGridY < CurrentOverworldLevel[2]*MistResolution; MistGridY++){
+			RemoveMovieClip(MistMap[MistGridX][MistGridY][1]);
+		}
+	}
+}
+								 
+
+//trace("--100--");
