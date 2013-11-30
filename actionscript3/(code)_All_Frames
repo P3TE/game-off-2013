@@ -1,3 +1,4 @@
+
 var keyArray:Array = new Array();
 var iFF:Number;
 var jFF:Number;
@@ -31,4 +32,113 @@ function bringToFront(mcl:MovieClip) {
 }
 function SendMovieClipToBack(McToMove:MovieClip):void {
 	McToMove.parent.setChildIndex(McToMove, 0);
+}
+function clearDelimeters(formattedString:String):String {     
+  //return formattedString.replace(/[\u000d\u000a\u0008\u0020]+/g,"");
+  return formattedString.replace(/[\u000d]+/g,""); 
+}
+
+var PF_PlayerMaxHealth = 10;
+
+var EM_MonsterType:int = 0;
+//0 --> UFF
+//1 --> Pholdin
+var EM_MonsterName:String = "Missing_Str";
+var EM_Health:int = 0;
+var EM_Damage:int = 0;
+var EM_Speed:int = 0;
+var EM_CoinAmount:int = 0;
+
+loadMonsterCredentials("Pholdin_1");
+
+//Engage In Monsters:
+function loadMonsterCredentials(Name:String):void{
+	if(Name == "UFF"){
+		EM_MonsterName = "UFF";
+		EM_MonsterType = 0;
+		EM_Health = 5;
+		EM_Damage = 1;
+		EM_Speed = 0;
+		EM_CoinAmount = 100;
+	}
+	if(Name == "Pholdin_1"){
+		EM_MonsterName = "Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 3;
+		EM_Damage = 1;
+		EM_Speed = 1;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_2"){
+		EM_MonsterName = "Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 6;
+		EM_Damage = 1;
+		EM_Speed = 1;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_3"){
+		EM_MonsterName = "Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 6;
+		EM_Damage = 2;
+		EM_Speed = 1;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_4"){
+		EM_MonsterName = "Menacing Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 6;
+		EM_Damage = 2;
+		EM_Speed = 2;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_5"){
+		EM_MonsterName = "Menacing Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 6;
+		EM_Damage = 5;
+		EM_Speed = 1;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_6"){
+		EM_MonsterName = "Menacing Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 3;
+		EM_Damage = 5;
+		EM_Speed = 3;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_7"){
+		EM_MonsterName = "Elite Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 6;
+		EM_Damage = 4;
+		EM_Speed = 3;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_8"){
+		EM_MonsterName = "Elite Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 12;
+		EM_Damage = 3;
+		EM_Speed = 3;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_9"){
+		EM_MonsterName = "Elite Pholdin";
+		EM_MonsterType = 1;
+		EM_Health = 12;
+		EM_Damage = 5;
+		EM_Speed = 4;
+		EM_CoinAmount = 5;
+	}
+	if(Name == "Pholdin_10"){
+		EM_MonsterName = "The Warden";
+		EM_MonsterType = 1;
+		EM_Health = 30;
+		EM_Damage = 7;
+		EM_Speed = 3;
+		EM_CoinAmount = 5;
+	}
 }
