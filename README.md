@@ -11,7 +11,7 @@ You’re trapped, left alone to rot in your cell for the rest of your days. That
 ## Development
 Starting about 10 days late, we produced the first alpha version of the game with some rudimentary elements of the topdown TPG mode functioning and a few pieces of concept art on the 12th of this month.
 
-![Prisoner Concept Art](https://doc-0g-6k-docs.googleusercontent.com/docs/securesc/gplgbmo5e9qfpc6iq761j7vb1m78fd7k/22tfkkh62m7uk9mhd27e4io4f6ku7djq/1385769600000/17870549467301777198/17870549467301777198/0B2JizZ8E1TDfRmhVY0xRUFU2alk?e=download&h=16653014193614665626&nonce=jm66tfh8suj8s&user=17870549467301777198&hash=q0ho8faq6edl8m71bmkg8bf5p65qpkq3)![First Alpha](https://dl.dropboxusercontent.com/s/rl0ov42hgisix2o/12_11-small.jpg?dl=1&token_hash=AAG5jc-PE5OIIyd8jGrFci1D2pluBhuTWQ3rL3NxTG06XQ)
+![Prisoner Concept Art](https://dl.dropboxusercontent.com/s/1rk4hagb6kaof9b/concept_art.jpg?dl=1&token_hash=AAF_lZEvSXKRjAwtc-LDRFfJ5W_FOZnKR7J3WPS61NbSVQ)![First Alpha](https://dl.dropboxusercontent.com/s/rl0ov42hgisix2o/12_11-small.jpg?dl=1&token_hash=AAG5jc-PE5OIIyd8jGrFci1D2pluBhuTWQ3rL3NxTG06XQ)
 
 Now the end of the month has arrived and here are a couple of new screenshots of the game as it is now!
 (insert screenshots here ;D)
