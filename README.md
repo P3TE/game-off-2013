@@ -35,7 +35,7 @@ Battle mode:
 
 
 ## Play the game!
-[On our website!]http://quarkbeast.com.au/
+http://quarkbeast.com.au/
 
 ## The Blind Dingoes Team
 Peter "P3TE" Smith - Programming
