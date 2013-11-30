@@ -1,15 +1,44 @@
 stop();
- 
+
+var MonsterArray = new Array(0);
+var MonsterArrayPosition:int = 0;
+
+
+var CurrentFrame:int = 1;
+var LoadedFile:String = "Prison1";
+
+var Player_Change = 0;
+
+var gridSize:int = 80;
+var playerPosX:Number = 3*gridSize;
+var playerPosY:Number = 2*gridSize;
+var playerGridX:Number = 3;
+var playerGridY:Number = 2;
+
+var SuperTempGridX:int = 3;
+var SuperTempGridY:int = 2;
+//SuperTempGridY
 GameBtn.addEventListener(MouseEvent.CLICK, GameBtn_Press);
 GameBtn.addEventListener(MouseEvent.ROLL_OVER, GameBtn_RollOver);
 GameBtn.addEventListener(MouseEvent.ROLL_OUT,GameBtn_RollOut);
 function GameBtn_Press(ev:MouseEvent):void{
+
+	/*
+	LoadedFile = LevelStart_txt.text;
+	playerGridX = int(LevelStartX_txt.text);
+	playerGridY = int(LevelStartY_txt.text);
+	playerPosX = playerGridX*gridSize;
+	playerPosY = playerGridY*gridSize;
+	*/
+
 	gotoAndPlay(2);
 }
 function GameBtn_RollOver(ev:MouseEvent):void{
 }
 function GameBtn_RollOut(ev:MouseEvent):void{
 }
+
+
 
 EditorBtn.addEventListener(MouseEvent.CLICK, EditorBtn_Press);
 EditorBtn.addEventListener(MouseEvent.ROLL_OVER, EditorBtn_RollOver);
@@ -22,17 +51,22 @@ function EditorBtn_RollOver(ev:MouseEvent):void{
 function EditorBtn_RollOut(ev:MouseEvent):void{
 }
 
+CreditsBtn.addEventListener(MouseEvent.CLICK, CreditsBtn_Press);
+CreditsBtn.addEventListener(MouseEvent.ROLL_OVER, CreditsBtn_RollOver);
+CreditsBtn.addEventListener(MouseEvent.ROLL_OUT,CreditsBtn_RollOut);
+function CreditsBtn_Press(ev:MouseEvent):void{
+	LoadedFile = "Credits";
+	playerPosX = 2*gridSize;
+	playerPosY = 17*gridSize;
+	playerGridX = 2;
+	playerGridY = 17;
+	gotoAndPlay(2);
+}
+function CreditsBtn_RollOver(ev:MouseEvent):void{
+}
+function CreditsBtn_RollOut(ev:MouseEvent):void{
+}
 
-BattleBtn.addEventListener(MouseEvent.CLICK, BattleBtn_Press);
-BattleBtn.addEventListener(MouseEvent.ROLL_OVER, BattleBtn_RollOver);
-BattleBtn.addEventListener(MouseEvent.ROLL_OUT,BattleBtn_RollOut);
-function BattleBtn_Press(ev:MouseEvent):void{
-	gotoAndPlay(4);
-}
-function BattleBtn_RollOver(ev:MouseEvent):void{
-}
-function BattleBtn_RollOut(ev:MouseEvent):void{
-}
 
 /*
 var BigArray = new Array();
