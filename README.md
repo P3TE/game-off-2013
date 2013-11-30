@@ -38,8 +38,8 @@ Battle mode:
 (insert link here ;D)
 
 ## The Blind Dingoes Team
-P3TE - Programming
+Peter "P3TE" Smith - Programming
 
-Chootin - Art
+Alec "Chootin" Tutin - Art
 
-Polo-on-Stilts - Story, Level Design
+Mark "Polo-on-Stilts" Opstelten - Story, Level Design
