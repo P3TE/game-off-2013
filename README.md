@@ -9,7 +9,7 @@ it with an invigorating fighting game, integrated into the RPG in the exact same
 You’re trapped, left alone to rot in your cell for the rest of your days. That is, until the voice of a mysterious woman sounds through the equipment grafted to your skull. Time to escape, she says. Alarms are wailing, but guards are rarely to be seen. And what was that just then? Some kind of scratching behind that door? Pick up a sword. Like she said, it’s time to escape.
 
 ## Development
-Starting about 10 days late, we produced the first alpha version of the game with some rudimentary elements of the topdown TPG mode functioning and a few pieces of concept art on the 12th of this month.
+Starting about 10 days late, we produced the first alpha version of the game with some rudimentary elements of the topdown TPG mode functioning and a few pieces of concept art on the 12th of this month. Despite the team being composed of two musicians and an "ametuer singer" we are yet to add our soulful tunes to the game.
 
 ![Prisoner Concept Art](https://dl.dropboxusercontent.com/s/1rk4hagb6kaof9b/concept_art.jpg?dl=1&token_hash=AAF_lZEvSXKRjAwtc-LDRFfJ5W_FOZnKR7J3WPS61NbSVQ)![First Alpha](https://dl.dropboxusercontent.com/s/rl0ov42hgisix2o/12_11-small.jpg?dl=1&token_hash=AAG5jc-PE5OIIyd8jGrFci1D2pluBhuTWQ3rL3NxTG06XQ)
 
