@@ -23,6 +23,9 @@ Now the end of the month has arrived and here are a couple of new screenshots of
 
 Despite the team being composed of two musicians and an "ametuer singer", we are yet to add our soulful tunes to the game. Including the font used, this entire endevour has been done from scratch by us during this month.
 
+The source, if you want it!
+https://www.dropbox.com/s/bgbqfhoi3jz7vsm/beta_release_files.zip
+
 ## Instructions
 Click on screen after the menu to ensure input is captured.
 
