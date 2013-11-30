@@ -2,6 +2,8 @@ import flash.display.MovieClip;
 P_FighterMC.gotoAndStop(1);
 stop();
 
+CurrentFrame = 4;
+
 //PF = Player Fighter
 var PF_FacingRight:Boolean = true;
 
@@ -11,7 +13,7 @@ var PF_CooldownInvulnerability:int = 0;
 var BaseInvulnerabilityTime = 10;
 
 var PF_PosX:Number = 124.95;
-var PF_PosY:Number = 72.55;
+var PF_PosY:Number = 165.15;
 
 var PF_VelocityX:Number = 0;
 var PF_VelocityY:Number = 0;
@@ -20,6 +22,7 @@ var PF_AccelerationX:Number = 0;
 var PF_AccelerationY:Number = 5;
 
 var PF_OnGroud = false;
+var PF_Dead:Boolean = false;
 
 var PF_XSpeed:Number = 1;
 var PF_MaxVelocity:Number = 20;
@@ -44,6 +47,9 @@ var PF_TimeHeldSpace:int = 0;
 var PF_LandingStun:int = 0;
 var PF_LandingStunCounter:int = 0;
 var PF_nextMove:int = 0;
+
+var PF_CurrentHealth = PF_PlayerMaxHealth;
+
 // 0 --> Nothing Planned.
 // 1 --> Upward Stroke.
 // 2 --> Downward Stroke.
@@ -52,382 +58,474 @@ var PF_nextMove:int = 0;
 var Bob:MovieClip;
 //Bob.currentFrame;
 
+//HealthBarMc
 
-var EF_PosX:Number = TestHitBox.x;
-var EF_PosY:Number = TestHitBox.y;
+PF_SlashHitBox.alpha = 0.01;
+EnemyAttackMC.alpha = 0.01;
+
+var ChangeFromFight:int = 0;
+var ChangeShown:int = 0;
+
+var TimeAfterWonFightMax:int = 100;
+var TimeAfterWonFight:int = TimeAfterWonFightMax;
+
+var TakenChange:Boolean = false;
+
+var DontStopTheWorld:Boolean = true;
+
 
 var TEST_color:ColorTransform = new ColorTransform();
+
+var MonsterHurt_color:ColorTransform = new ColorTransform();
+	MonsterHurt_color.blueOffset = -50;
+	MonsterHurt_color.greenOffset = 0;
+	MonsterHurt_color.redOffset = 50; 
+var MonsterNo_color:ColorTransform = new ColorTransform();
+	MonsterNo_color.blueOffset = 0;
+	MonsterNo_color.greenOffset = 0;
+	MonsterNo_color.redOffset = 0; 
+
+
+
+var SomeCoinRain:MoneyRainMC = new MoneyRainMC();
 
 
 this.addEventListener(Event.ENTER_FRAME,UpdateFight);
 function UpdateFight(event:Event):void
 {
-	PF_VelocityX += PF_AccelerationX;
-	PF_VelocityY += PF_AccelerationY;
-	PF_PosX += PF_VelocityX;
-	PF_PosY += PF_VelocityY;
-	
-	updateBorder();
-	
-
-	
-	PF_OnGroud = false;
-	PF_TimeOffGround ++;
-	if(PF_PosY + P_FighterMC.height > WallMc_Bottom.y){
-		PF_PosY = WallMc_Bottom.y - P_FighterMC.height;
-		if(PF_TimeOffGround > 1){
-			PF_LandingStun = Math.round(PF_VelocityY/6);
-			PF_LandingStunCounter = Math.round(PF_VelocityY/6);
-		}
-		PF_VelocityY = 0;
-		PF_OnGroud = true;
-		PF_BeginFight = true;
-		PF_TimeOffGround = 0;
-	}
-	PlayerCharacterPrisonerAnimation.PrisonerBattleMc.HitBoxMc.alpha = 0.01;
-	if(TestHitBox.hitTestObject(PlayerCharacterPrisonerAnimation.PrisonerBattleMc.HitBoxMc)){
-		TEST_color.blueOffset = 300;
-		TEST_color.greenOffset = 0;
-		TEST_color.redOffset = -300; 
-		TestHitBox.transform.colorTransform = TEST_color;
-	} else {
-		TEST_color.blueOffset = -300;
-		TEST_color.greenOffset = 0;
-		TEST_color.redOffset = 300; 
-		TestHitBox.transform.colorTransform = TEST_color;
-	}
-	
-	if(PF_SlashHitBox.hitTestObject(TestHitBox)){
-		trace("You Got DONE!");
-		TEST_color.blueOffset = 0;
-		TEST_color.greenOffset = 0;
-		TEST_color.redOffset = -300; 
-		TestHitBox.transform.colorTransform = TEST_color;
-	}
-	//EF_UFF_Animation
-	/*
-	if(PF_swingUpCooldown > 0){
-		PF_swingUpCooldown--;
-	}
-	if(PF_swingDownCooldown > 0){
-		PF_swingDownCooldown--;
-	}
-	if(PF_ThrustCooldown > 0){
-		PF_ThrustCooldown--;
-	}
-	if(PF_RollDodgeCooldown > 0){
-		PF_RollDodgeCooldown--;
-	}
-	*/
-	var canRun:Boolean = true;
-	if((PF_swingUpCooldown>8) || (PF_swingDownCooldown>10) || (PF_ThrustCooldown>10) || (PF_LandingStun != 0) || (PF_TimeHeldSpace != 0) || (!PF_OnGroud) || (PF_RollDodgeCooldown > 0)){
-		canRun = false;
-	}
-	if(isKeyDown(65) && canRun){
-		//Key Pressed: a (character code: 65)
-		PF_VelocityX -= PF_XSpeed;
-		if(PF_VelocityX > 0){
-			PF_VelocityX -= 1.5*PF_XSpeed;
-		}
-		if(PF_VelocityX < 0){
-			//MAKE IT SKID ;) \\
-			PF_FacingRight = false;
-			P_FighterMC.gotoAndStop(2);
-		}
-	} 
-	if(isKeyDown(68) && canRun){
-		//Key Pressed: d (character code: 68)
-		PF_VelocityX += PF_XSpeed;
-		if(PF_VelocityX < 0){
-			PF_VelocityX += 1.5*PF_XSpeed;
-		}
-		if(PF_VelocityX > 0){
-			//MAKE IT SKID ;) \\
-			PF_FacingRight = true;
-			P_FighterMC.gotoAndStop(1);
-		}
-	}
-	if((!isKeyDown(65) && !isKeyDown(68)) && PF_OnGroud && (PF_RollDodgeCooldown == 0)){
-		changePlayerVelocity(-1.5);
-	}
-	if(!canRun && PF_OnGroud){
-		changePlayerVelocity(-2);
-	}
-	
-	if((PF_VelocityX > PF_MaxVelocity)){
-		PF_VelocityX -= PF_XSpeed*2;
-	} else if((PF_VelocityX < -PF_MaxVelocity)){
-		PF_VelocityX += PF_XSpeed*2;
-	}
-	
-	if((!(isKeyDown(87) || isKeyDown(32))) && (PF_SpaceDown)){
-		//Released Space
-		if(PF_DuckDown){
-			//Do Nothing
+	//trace("Lol Wot?");
+	if(CurrentFrame == 4){
+		updateBorder();
+		
+		if(PF_Dead){
+			PF_VelocityX += PF_AccelerationX;
+			PF_VelocityY += PF_AccelerationY;
+			PF_PosX += PF_VelocityX;
+			PF_PosY += PF_VelocityY;
+			P_FighterMC.x = PF_PosX;
+			P_FighterMC.y = PF_PosY;
 		} else {
-			if(PF_TimeHeldSpace > 0){
-				if(PF_JumpMin > 8){
+			if(TakenChange){
+				TimeAfterWonFight --;
+				//ChangeGetMC.ChangeRecieved_txt
+				if(ChangeShown < ChangeFromFight){
+					ChangeShown ++;
+				}
+				ChangeGetMC.ChangeRecieved_txt.text = "Health + " + ChangeShown + "!";
+				if(TimeAfterWonFight <= 0){
+					RemoveMovieClip(SomeCoinRain);
+					DontStopTheWorld = false;
+					gotoAndStop(2);
+				}
+			}
+			if(DontStopTheWorld){
+				if(EF_Dead){
+					if(EF_Pholdin_Animation.currentStage == "Dying" || EF_Pholdin_Animation.currentStage == "Dead"){
+						
+					} else {
+						EF_Pholdin_Animation.gotoAndPlay(90);
+						//PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(1);
+						addChild(SomeCoinRain);
+						SomeCoinRain.y = EF_PosY;
+						if(EF_FacingRight){
+							SomeCoinRain.x = EF_PosX - 100;
+						} else {
+							SomeCoinRain.x = EF_PosX + 100;
+						}
+						PF_CooldownInvulnerability = 0;
+						PF_color.blueOffset = 0;
+						PF_color.greenOffset = 0;
+						PF_color.redOffset = 0; 
+						PlayerCharacterPrisonerAnimation.transform.colorTransform = PF_color;
+					}
+					if(SomeCoinRain.hitTestObject(PlayerCharacterPrisonerAnimation.PrisonerBattleMc.HitBoxMc)){
+						ChangeGetMC.x = 400;
+						ChangeGetMC.y = 400;
+						if(!TakenChange){
+							/*
+							var EM_MonsterName:String = "Missing_Str";
+							var EM_Health:int = 0;
+							var EM_Damage:int = 0;
+							var EM_Speed:int = 0;
+							var EM_CoinAmount:int = 0;
+							*/
+							ChangeFromFight =  EM_Health*EM_Damage*EM_Speed;
+							Player_Change += ChangeFromFight;
+						}
+						TakenChange = true;
+					}
+				}
+			}
+			PF_VelocityX += PF_AccelerationX;
+			PF_VelocityY += PF_AccelerationY;
+			PF_PosX += PF_VelocityX;
+			PF_PosY += PF_VelocityY;
+			
+			PF_OnGroud = false;
+			PF_TimeOffGround ++;
+			if(PF_PosY + P_FighterMC.height > WallMc_Bottom.y){
+				PF_PosY = WallMc_Bottom.y - P_FighterMC.height;
+				if(PF_TimeOffGround > 1){
+					PF_LandingStun = Math.round(PF_VelocityY/6);
+					PF_LandingStunCounter = Math.round(PF_VelocityY/6);
+				}
+				PF_VelocityY = 0;
+				PF_OnGroud = true;
+				PF_BeginFight = true;
+				PF_TimeOffGround = 0;
+			}
+			PlayerCharacterPrisonerAnimation.PrisonerBattleMc.HitBoxMc.alpha = 0.01;
+			if(TestHitBox.hitTestObject(PlayerCharacterPrisonerAnimation.PrisonerBattleMc.HitBoxMc)){
+				TEST_color.blueOffset = 300;
+				TEST_color.greenOffset = 0;
+				TEST_color.redOffset = -300; 
+				TestHitBox.transform.colorTransform = TEST_color;
+			} else {
+				TEST_color.blueOffset = -300;
+				TEST_color.greenOffset = 0;
+				TEST_color.redOffset = 300; 
+				TestHitBox.transform.colorTransform = TEST_color;
+			}
+			
+			if(PF_SlashHitBox.hitTestObject(TestHitBox)){
+				trace("You Got DONE!");
+				TEST_color.blueOffset = 0;
+				TEST_color.greenOffset = 0;
+				TEST_color.redOffset = -300; 
+				TestHitBox.transform.colorTransform = TEST_color;
+			}
+			//EF_UFF_Animation
+			/*
+			if(PF_swingUpCooldown > 0){
+				PF_swingUpCooldown--;
+			}
+			if(PF_swingDownCooldown > 0){
+				PF_swingDownCooldown--;
+			}
+			if(PF_ThrustCooldown > 0){
+				PF_ThrustCooldown--;
+			}
+			if(PF_RollDodgeCooldown > 0){
+				PF_RollDodgeCooldown--;
+			}
+			*/
+			var canRun:Boolean = true;
+			if((PF_swingUpCooldown>8) || (PF_swingDownCooldown>10) || (PF_ThrustCooldown>10) || (PF_LandingStun != 0) || (PF_TimeHeldSpace != 0) || (!PF_OnGroud) || (PF_RollDodgeCooldown > 0)){
+				canRun = false;
+			}
+			if(isKeyDown(65) && canRun){
+				//Key Pressed: a (character code: 65)
+				PF_VelocityX -= PF_XSpeed;
+				if(PF_VelocityX > 0){
+					PF_VelocityX -= 1.5*PF_XSpeed;
+				}
+				if(PF_VelocityX < 0){
+					//MAKE IT SKID ;) \\
+					PF_FacingRight = false;
+					P_FighterMC.gotoAndStop(2);
+				}
+			} 
+			if(isKeyDown(68) && canRun){
+				//Key Pressed: d (character code: 68)
+				PF_VelocityX += PF_XSpeed;
+				if(PF_VelocityX < 0){
+					PF_VelocityX += 1.5*PF_XSpeed;
+				}
+				if(PF_VelocityX > 0){
+					//MAKE IT SKID ;) \\
+					PF_FacingRight = true;
+					P_FighterMC.gotoAndStop(1);
+				}
+			}
+			if((!isKeyDown(65) && !isKeyDown(68)) && PF_OnGroud && (PF_RollDodgeCooldown == 0)){
+				changePlayerVelocity(-1.5);
+			}
+			if(!canRun && PF_OnGroud){
+				changePlayerVelocity(-2);
+			}
+			
+			if((PF_VelocityX > PF_MaxVelocity)){
+				PF_VelocityX -= PF_XSpeed*2;
+			} else if((PF_VelocityX < -PF_MaxVelocity)){
+				PF_VelocityX += PF_XSpeed*2;
+			}
+			
+			if((!(isKeyDown(87) || isKeyDown(32))) && (PF_SpaceDown)){
+				//Released Space
+				if(PF_DuckDown){
+					//Do Nothing
+				} else {
+					if(PF_TimeHeldSpace > 0){
+						if(PF_JumpMin > 8){
+							//Jump!
+							PlayerJump();
+						} else {
+							PF_JumpMin = PF_TimeHeldSpace;
+						}
+					}
+				}
+			}
+			if(PF_JumpMin > 0){
+				if(PF_JumpMin <= 8){
+					PF_JumpMin ++;
+					PF_TimeHeldSpace ++;
+				} else {
 					//Jump!
 					PlayerJump();
+				}
+			}
+			if((!(isKeyDown(83))) && (PF_DuckDown)){
+				//Released Duck
+				if(isKeyDown(87) || isKeyDown(32)){
+					//Do Nothing
 				} else {
-					PF_JumpMin = PF_TimeHeldSpace;
+					if(PF_TimeHeldSpace > 0){
+						if(PF_LandingStunCounter == 0){
+							PF_LandingStun = 2;
+							PF_LandingStunCounter = 2;
+							PF_TimeHeldSpace = 0;
+							PF_JumpMin = 0;
+						}
+					}
 				}
 			}
-		}
-	}
-	if(PF_JumpMin > 0){
-		if(PF_JumpMin <= 8){
-			PF_JumpMin ++;
-			PF_TimeHeldSpace ++;
-		} else {
-			//Jump!
-			PlayerJump();
-		}
-	}
-	if((!(isKeyDown(83))) && (PF_DuckDown)){
-		//Released Duck
-		if(isKeyDown(87) || isKeyDown(32)){
-			//Do Nothing
-		} else {
-			if(PF_TimeHeldSpace > 0){
-				if(PF_LandingStunCounter == 0){
-					PF_LandingStun = 2;
-					PF_LandingStunCounter = 2;
-					PF_TimeHeldSpace = 0;
-					PF_JumpMin = 0;
+			if(isKeyDown(87) || isKeyDown(32)){
+				PF_SpaceDown = true;
+			} else {
+				PF_SpaceDown = false;
+			}
+			if(isKeyDown(83)){
+				PF_JumpMin = 0;
+				PF_DuckDown = true;
+			} else {
+				PF_DuckDown = false;
+			}
+			if(isKeyDown(87) || isKeyDown(32) || isKeyDown(83)){
+				if((PF_RollDodgeCooldown == 0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown<8)){
+					if(PF_OnGroud){
+						if(PF_LandingStunCounter <= 2 && PF_LandingStunCounter > 0){
+							PF_LandingStun = 0;
+							PF_LandingStunCounter = 0;
+							PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(64);
+							PF_TimeHeldSpace = 4;
+							PF_JumpMin = 4;
+						}
+						if(PF_TimeHeldSpace == 0){
+							PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(60);
+						}
+						PF_TimeHeldSpace ++;
+					}
 				}
 			}
-		}
-	}
-	if(isKeyDown(87) || isKeyDown(32)){
-		PF_SpaceDown = true;
-	} else {
-		PF_SpaceDown = false;
-	}
-	if(isKeyDown(83)){
-		PF_JumpMin = 0;
-		PF_DuckDown = true;
-	} else {
-		PF_DuckDown = false;
-	}
-	if(isKeyDown(87) || isKeyDown(32) || isKeyDown(83)){
-		if((PF_RollDodgeCooldown == 0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown<8)){
-			if(PF_OnGroud){
-				if(PF_LandingStunCounter <= 2 && PF_LandingStunCounter > 0){
-					PF_LandingStun = 0;
-					PF_LandingStunCounter = 0;
-					PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(64);
-					PF_TimeHeldSpace = 4;
-					PF_JumpMin = 4;
-				}
-				if(PF_TimeHeldSpace == 0){
-					PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(60);
-				}
-				PF_TimeHeldSpace ++;
+			
+			if(PF_PosX + PF_VelocityX < WallMc_Left.x + WallMc_Left.width){
+				PF_PosX = WallMc_Left.x + WallMc_Left.width;
+				PF_VelocityX = 0;
 			}
-		}
-	}
-	
-	if(PF_PosX + PF_VelocityX < WallMc_Left.x + WallMc_Left.width){
-		PF_PosX = WallMc_Left.x + WallMc_Left.width;
-		PF_VelocityX = 0;
-	}
-	if(PF_PosX + PF_VelocityX + P_FighterMC.width > WallMc_Right.x){
-		PF_PosX = WallMc_Right.x - P_FighterMC.width;
-		PF_VelocityX = 0;
-	}
-	
-	if(PF_CooldownInvulnerability > 0){
-		PF_CooldownInvulnerability -- ;
-	} else {
-		PF_CooldownInvulnerability = 0;
-		PF_color.blueOffset = 0;
-		PF_color.greenOffset = 0;
-		PF_color.redOffset = 0; 
-		P_FighterMC.transform.colorTransform = PF_color;
-	}
-	
-	if(PF_swingUpCooldown > 0){
-		PF_swingUpCooldown--;
-	}
-	if(PF_swingDownCooldown > 0){
-		PF_swingDownCooldown--;
-	}
-	if(PF_ThrustCooldown > 0){
-		PF_ThrustCooldown--;
-	}
-	if(PF_RollDodgeCooldown > 0){
-		PF_RollDodgeCooldown--;
-	}
-
-	//var Bob:MovieClip;
-	if(isKeyDown(38)){
-		//Up Arrow.
-		PF_nextMove = 1;
-		if (PF_swingUpCooldown>9){
-			PF_nextMove = 0;
-		}	
-		if((PF_RollDodgeCooldown==0)&&(PF_ThrustCooldown==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown==0)&&(PF_TimeHeldSpace == 0)){
-			if(PF_OnGroud){
-				PF_nextMove = 0;
-				Player_swingRight();
-			} else if(!WillHitGroundInXFrames(10)){
-				PF_nextMove = 0;
-				Player_swingRight();
+			if(PF_PosX + PF_VelocityX + P_FighterMC.width > WallMc_Right.x){
+				PF_PosX = WallMc_Right.x - P_FighterMC.width;
+				PF_VelocityX = 0;
 			}
-		}
-	}
-	if(isKeyDown(40)){
-		//Down Arrow.
-		PF_nextMove = 2;
-		if (PF_swingDownCooldown>11){
-			PF_nextMove = 0;
-		}
-		if((PF_RollDodgeCooldown==0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown==0)&&(PF_swingUpCooldown<8)&&(PF_TimeHeldSpace == 0)){
-			if(PF_OnGroud){
-				PF_nextMove = 0;
-				Player_swingLeft();
-			} else if(!WillHitGroundInXFrames(12)){
-				PF_nextMove = 0;
-				Player_swingLeft();
+			
+			if(PF_CooldownInvulnerability > 0){
+				PF_CooldownInvulnerability -- ;
+			} else {
+				PF_CooldownInvulnerability = 0;
+				PF_color.blueOffset = 0;
+				PF_color.greenOffset = 0;
+				PF_color.redOffset = 0; 
+				PlayerCharacterPrisonerAnimation.transform.colorTransform = PF_color;
 			}
-		}
-	}
-	if(isKeyDown(39)){
-		//Right Arrow.
-		if(PF_PosX > EF_PosX){
-			if(PF_RollDodgeCooldown < 5){
-				PF_nextMove = 4;
+			
+			if(PF_swingUpCooldown > 0){
+				PF_swingUpCooldown--;
 			}
-			if((PF_RollDodgeCooldown == 0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown<8)&&(PF_OnGroud)){
-				Player_Dodge(false);
-				PF_FacingRight = false;
+			if(PF_swingDownCooldown > 0){
+				PF_swingDownCooldown--;
 			}
-		}
-	}
-	
-	if(isKeyDown(37)){
-		//Left Arrow.
-		if(PF_PosX < EF_PosX){
-			if(PF_RollDodgeCooldown < 5){
-				PF_nextMove = 3;
+			if(PF_ThrustCooldown > 0){
+				PF_ThrustCooldown--;
 			}
-			if((PF_RollDodgeCooldown == 0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown<8)&&(PF_OnGroud)){
-				Player_Dodge(true);
-				PF_FacingRight = true;
+			if(PF_RollDodgeCooldown > 0){
+				PF_RollDodgeCooldown--;
 			}
-		}
-	}
-	
-	if(PF_nextMove == 1){
-		if((PF_RollDodgeCooldown==0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown==0)&&(PF_TimeHeldSpace == 0)){
-			if(PF_OnGroud){
-				PF_nextMove = 0;
-				Player_swingRight();
-			} else if(!WillHitGroundInXFrames(10)){
-				PF_nextMove = 0;
-				Player_swingRight();
-			}
-		}
-	}
-	if(PF_nextMove == 2){
-		if((PF_RollDodgeCooldown==0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown==0)&&(PF_swingUpCooldown<8)&&(PF_TimeHeldSpace == 0)){
-			if(PF_OnGroud){
-				PF_nextMove = 0;
-				Player_swingLeft();
-			} else if(!WillHitGroundInXFrames(12)){
-				PF_nextMove = 0;
-				Player_swingLeft();
-			}
-		}
-	}
-	
-	P_FighterMC.x = PF_PosX;
-	P_FighterMC.y = PF_PosY;
-	P_FighterMC.alpha = 0.01;
-	PF_SlashHitBox.x = PF_PosX;
-	PF_SlashHitBox.y = PF_PosY;
-	
-	PlayerCharacterPrisonerAnimation.x = PF_PosX;
-	PlayerCharacterPrisonerAnimation.y = PF_PosY;
-	
-	
-	if(PF_FacingRight){
-		//PlayerCharacterPrisonerAnimation.PrisonerBattleMc.scaleX = 1;
-		PlayerCharacterPrisonerAnimation.gotoAndStop(1);
 		
-	} else {
-		PlayerCharacterPrisonerAnimation.gotoAndStop(2);
-		//AnimationFrameAdder = 50;
-	}
-	
-	
-	
-	
-	
-	var PlayerCurrentFrame:int = PlayerCharacterPrisonerAnimation.PrisonerBattleMc.currentFrame;
-
-	if(PF_OnGroud){
-		if(PF_LandingStun == 0){
-			if(PF_TimeHeldSpace == 0){
-				if(PF_RollDodgeCooldown == 0){
-					if(PF_swingDownCooldown<11){
-						if(PF_swingUpCooldown<9){
-							if(PF_VelocityX == 0){
-								if(PlayerCurrentFrame > 15){
-									PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(1);
+			//var Bob:MovieClip;
+			if(isKeyDown(38)){
+				//Up Arrow.
+				PF_nextMove = 1;
+				if (PF_swingUpCooldown>9){
+					PF_nextMove = 0;
+				}	
+				if((PF_RollDodgeCooldown==0)&&(PF_ThrustCooldown==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown==0)&&(PF_TimeHeldSpace == 0)){
+					if(PF_OnGroud){
+						PF_nextMove = 0;
+						Player_swingRight();
+					} else if(!WillHitGroundInXFrames(10)){
+						PF_nextMove = 0;
+						Player_swingRight();
+					}
+				}
+			}
+			if(isKeyDown(40)){
+				//Down Arrow.
+				PF_nextMove = 2;
+				if (PF_swingDownCooldown>11){
+					PF_nextMove = 0;
+				}
+				if((PF_RollDodgeCooldown==0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown==0)&&(PF_swingUpCooldown<8)&&(PF_TimeHeldSpace == 0)){
+					if(PF_OnGroud){
+						PF_nextMove = 0;
+						Player_swingLeft();
+					} else if(!WillHitGroundInXFrames(12)){
+						PF_nextMove = 0;
+						Player_swingLeft();
+					}
+				}
+			}
+			if(isKeyDown(39)){
+				//Right Arrow.
+				if(PF_PosX > EF_PosX){
+					if(PF_RollDodgeCooldown < 5){
+						PF_nextMove = 4;
+					}
+					if((PF_RollDodgeCooldown == 0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown<8)&&(PF_OnGroud)){
+						Player_Dodge(false);
+						PF_FacingRight = false;
+					}
+				}
+			}
+			
+			if(isKeyDown(37)){
+				//Left Arrow.
+				if(PF_PosX < EF_PosX){
+					if(PF_RollDodgeCooldown < 5){
+						PF_nextMove = 3;
+					}
+					if((PF_RollDodgeCooldown == 0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown<8)&&(PF_OnGroud)){
+						Player_Dodge(true);
+						PF_FacingRight = true;
+					}
+				}
+			}
+			
+			if(PF_nextMove == 1){
+				if((PF_RollDodgeCooldown==0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown<10)&&(PF_swingUpCooldown==0)&&(PF_TimeHeldSpace == 0)){
+					if(PF_OnGroud){
+						PF_nextMove = 0;
+						Player_swingRight();
+					} else if(!WillHitGroundInXFrames(10)){
+						PF_nextMove = 0;
+						Player_swingRight();
+					}
+				}
+			}
+			if(PF_nextMove == 2){
+				if((PF_RollDodgeCooldown==0)&&(PF_LandingStunCounter==0)&&(PF_swingDownCooldown==0)&&(PF_swingUpCooldown<8)&&(PF_TimeHeldSpace == 0)){
+					if(PF_OnGroud){
+						PF_nextMove = 0;
+						Player_swingLeft();
+					} else if(!WillHitGroundInXFrames(12)){
+						PF_nextMove = 0;
+						Player_swingLeft();
+					}
+				}
+			}
+			
+			P_FighterMC.x = PF_PosX;
+			P_FighterMC.y = PF_PosY;
+			P_FighterMC.alpha = 0.01;
+			PF_SlashHitBox.x = PF_PosX;
+			PF_SlashHitBox.y = PF_PosY;
+			
+			PlayerCharacterPrisonerAnimation.x = PF_PosX;
+			PlayerCharacterPrisonerAnimation.y = PF_PosY;
+			
+			
+			if(PF_FacingRight){
+				//PlayerCharacterPrisonerAnimation.PrisonerBattleMc.scaleX = 1;
+				PlayerCharacterPrisonerAnimation.gotoAndStop(1);
+				
+			} else {
+				PlayerCharacterPrisonerAnimation.gotoAndStop(2);
+				//AnimationFrameAdder = 50;
+			}
+			
+			
+			
+			
+			
+			var PlayerCurrentFrame:int = PlayerCharacterPrisonerAnimation.PrisonerBattleMc.currentFrame;
+		
+			if(PF_OnGroud){
+				if(PF_LandingStun == 0){
+					if(PF_TimeHeldSpace == 0){
+						if(PF_RollDodgeCooldown == 0){
+							if(PF_swingDownCooldown<11){
+								if(PF_swingUpCooldown<9){
+									if(PF_VelocityX == 0){
+										if(PlayerCurrentFrame > 15){
+											PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(1);
+										}
+									} else if((Math.abs(PF_VelocityX) >0) && (Math.abs(PF_VelocityX) <3)){
+											PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(20);
+									} else if((Math.abs(PF_VelocityX) >=3) && (Math.abs(PF_VelocityX) <6)){
+										PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(23);
+									} else if(Math.abs(PF_VelocityX) >=6){
+										if((PlayerCurrentFrame > 43) || (PlayerCurrentFrame < 30)){
+											PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(30);
+										}
+									} 
+								} else {
+									if((PlayerCurrentFrame<45) || (PlayerCurrentFrame>56)){
+										PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(45);
+									}
 								}
-							} else if((Math.abs(PF_VelocityX) >0) && (Math.abs(PF_VelocityX) <3)){
-									PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(20);
-							} else if((Math.abs(PF_VelocityX) >=3) && (Math.abs(PF_VelocityX) <6)){
-								PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(23);
-							} else if(Math.abs(PF_VelocityX) >=6){
-								if((PlayerCurrentFrame > 43) || (PlayerCurrentFrame < 30)){
-									PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(30);
+							} else {
+								if((PlayerCurrentFrame<100) || (PlayerCurrentFrame>109)){
+									PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(100);
 								}
-							} 
+							}
 						} else {
-							if((PlayerCurrentFrame<45) || (PlayerCurrentFrame>56)){
-								PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(45);
+							if((PlayerCurrentFrame<115) || (PlayerCurrentFrame>135)){
+								PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(115);
 							}
 						}
 					} else {
-						if((PlayerCurrentFrame<100) || (PlayerCurrentFrame>109)){
-							PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(100);
-						}
+						
 					}
 				} else {
-					if((PlayerCurrentFrame<115) || (PlayerCurrentFrame>135)){
-						PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(115);
+					if(PF_LandingStunCounter == PF_LandingStun || PF_LandingStunCounter <= 2){
+						PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndStop(62);
+					} else {
+						PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndStop(64);
+					}
+					PF_LandingStunCounter --;
+					if(PF_LandingStunCounter == 0){
+						PF_LandingStun = 0;
 					}
 				}
-			} else {
-				
 			}
-		} else {
-			if(PF_LandingStunCounter == PF_LandingStun || PF_LandingStunCounter <= 2){
-				PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndStop(62);
-			} else {
-				PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndStop(64);
+			
+			if(!PF_OnGroud){
+				if(PF_swingDownCooldown>10){
+					if((PlayerCurrentFrame<100) || (PlayerCurrentFrame>109)){
+						PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(100);
+					}
+				} else if(PF_swingUpCooldown>8){
+					if((PlayerCurrentFrame<45) || (PlayerCurrentFrame>56)){
+						PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(45);
+					}
+				} else if((PlayerCurrentFrame > 90) || (PlayerCurrentFrame < 80)){
+					PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(80);
+				}
 			}
-			PF_LandingStunCounter --;
-			if(PF_LandingStunCounter == 0){
-				PF_LandingStun = 0;
+			
+			
+			
+			if(!EF_Dead){
+				HandleEnemy();
 			}
-		}
-	}
-	
-	if(!PF_OnGroud){
-		if(PF_swingDownCooldown>10){
-			if((PlayerCurrentFrame<100) || (PlayerCurrentFrame>109)){
-				PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(100);
-			}
-		} else if(PF_swingUpCooldown>8){
-			if((PlayerCurrentFrame<45) || (PlayerCurrentFrame>56)){
-				PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(45);
-			}
-		} else if((PlayerCurrentFrame > 90) || (PlayerCurrentFrame < 80)){
-			PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(80);
 		}
 	}
 }
@@ -511,29 +609,28 @@ function WillHitGroundInXFrames(Frames:int):Boolean {
 }
 
 
-function damagePlayer(DamageCount:int, DmgDirection:int){
-	PF_color.blueOffset = 150;
-	PF_color.greenOffset = 100;
-	PF_color.redOffset = -250; 
-	P_FighterMC.transform.colorTransform = PF_color;
-	PF_CooldownInvulnerability = BaseInvulnerabilityTime;
-	//DmgDirection = 1 --> down slash
-	//DmgDirection = 2 --> From Right
-	//DmgDirection = 3 --> From Left
-	if(DmgDirection == 2){
-		if(PF_VelocityX > 0){
-			PF_VelocityX = -7;
-		} else {
-			PF_VelocityX -= 14;
+function damagePlayer(DamageCount:int, DmgDirectionRight:Boolean){
+	if(PF_CooldownInvulnerability == 0){
+		
+		updateHealthBar();	
+		PF_color.blueOffset = 150;
+		PF_color.greenOffset = 100;
+		PF_color.redOffset = -250; 
+		PlayerCharacterPrisonerAnimation.transform.colorTransform = PF_color;
+		PF_CooldownInvulnerability = BaseInvulnerabilityTime;
+		PF_CurrentHealth -= DamageCount;
+		
+		
+		if(PF_CurrentHealth <= 0){
+			PF_CurrentHealth = 0;
+			PF_Dead = true;
+			PlayerCharacterPrisonerAnimation.PrisonerBattleMc.gotoAndPlay(140);
 		}
-	} else if(DmgDirection == 3){
-		if(PF_VelocityX < 0){
-			PF_VelocityX = 7;
-		} else {
-			PF_VelocityX += 14;
-		}
-	} else {
-		if(PF_FacingRight){
+		updateHealthBar();	
+		//DmgDirection = 1 --> down slash
+		//DmgDirection = 2 --> From Right
+		//DmgDirection = 3 --> From Left
+		if(!DmgDirectionRight){
 			if(PF_VelocityX > 0){
 				PF_VelocityX = -7;
 			} else {
@@ -545,7 +642,23 @@ function damagePlayer(DamageCount:int, DmgDirection:int){
 			} else {
 				PF_VelocityX += 14;
 			}
+		} 
+		/*else {
+			if(PF_FacingRight){
+				if(PF_VelocityX > 0){
+					PF_VelocityX = -7;
+				} else {
+					PF_VelocityX -= 14;
+				}
+			} else {
+				if(PF_VelocityX < 0){
+					PF_VelocityX = 7;
+				} else {
+					PF_VelocityX += 14;
+				}
+			}
 		}
+		*/
 	}
 }
 
@@ -567,4 +680,204 @@ function updateBorder():void{
 	}
 }
 	
+function DamageEnemy(DirectionRight:Boolean):void{
+	EF_CurrentHealth --;
+	updateHealthBar();
+	EF_CooldownInvulnerability = BaseInvulnerabilityTime;
+	if(EF_CurrentHealth <= 0){
+		EF_Dead = true;
+		//EF_Pholdin_Animation.gotoAndPlay(0);
+		//EF_Dead = true;
+	}
+}
 	
+function HandleEnemy():void{
+	if(EF_CooldownInvulnerability > 0){
+		EF_CooldownInvulnerability--;
+		EF_Pholdin_Animation.transform.colorTransform = MonsterHurt_color;
+			//MonsterHurt_color.redOffset = -100; 
+			//var MonsterNo_color:ColorTransform = new ColorTransform();
+	} else {
+		EF_Pholdin_Animation.transform.colorTransform = MonsterNo_color;
+		if(EM_MonsterType == 0){
+			if(PF_SlashHitBox.hitTestObject(EF_UFF_Animation)){
+				DamageEnemy(true);
+			}
+		} else if(EM_MonsterType == 1){
+			if(PF_SlashHitBox.hitTestObject(EF_Pholdin_Animation)){
+				DamageEnemy(true);
+			}
+		}
+		
+		
+		if(EM_MonsterType == 1){
+			if (EF_Pholdin_Animation.currentStage == "lunge2"){
+				if(EF_FacingRight){
+					EF_VelocityX = 20 * 0;
+				} else {
+					EF_VelocityX = -20 * 0;
+				}
+			} else {
+				//EF_VelocityX = 0;
+			}
+		}
+		EF_PosX += EF_VelocityX;
+		EF_PosY += EF_VelocityY;
+		
+		if(EM_MonsterType == 1){
+			if(!EF_Bite){
+				if(EF_CoolDown <= 0){
+					if(EF_PosX < PF_PosX && !EF_FacingRight){
+						EF_Bite = true;
+						EF_FacingRight = true;
+					}
+					if(EF_PosX > PF_PosX && EF_FacingRight){
+						EF_Bite = true;
+						EF_FacingRight = false;
+					}
+					/*
+					Cheecky_01_MC.x = PF_PosX;
+					Cheecky_01_MC.y = PF_PosY;
+					Cheecky_02_MC.x = EF_PosX;
+					Cheecky_02_MC.y = EF_PosY;
+					*/
+					if(Math.abs(EF_PosX - PF_PosX) < 120 + MORECompensationForFlip){
+						EF_Bite = true;
+						if(EF_FacingRight){
+							EF_VelocityX = 0;
+						} else {
+							EF_VelocityX = 0;
+						}
+					} else if(Math.abs(EF_PosX - PF_PosX) < 400){
+						if(EF_Pholdin_Animation.currentStage != "walking"){
+								EF_Pholdin_Animation.gotoAndPlay(70);
+								EnemyAttackMC.gotoAndPlay(70);
+							}
+						if(EF_FacingRight){
+							EF_VelocityX = 5*EM_Speed;
+						} else {
+							EF_VelocityX = -5*EM_Speed;
+						}
+					}
+				} else {
+					EF_CoolDown -= EM_Speed;
+				}
+			} else {
+				if(EF_Pholdin_Animation.currentStage == "lungeEnd"){
+					EF_Bite = false;
+					EF_CoolDown = EF_CoolDownMax;
+				} else {
+					if(EF_Pholdin_Animation.currentStage == "lunge1" || EF_Pholdin_Animation.currentStage == "lunge2" || EF_Pholdin_Animation.currentStage == "lunge3"){
+						
+					} else {
+						EF_Pholdin_Animation.gotoAndPlay(40);
+						EnemyAttackMC.gotoAndPlay(40);
+					}
+				}
+			}
+			if(EF_FacingRight){
+				EF_Pholdin_Animation.scaleX = -1;
+				EnemyAttackMC.scaleX = -1;
+				CompensationForFlip = EF_Width;
+				MORECompensationForFlip = 60;
+			} else {
+				EF_Pholdin_Animation.scaleX = 1;
+				EnemyAttackMC.scaleX = 1;
+				CompensationForFlip = 0;
+				MORECompensationForFlip = 0;
+			}
+			EF_Pholdin_Animation.x = EF_PosX - 50 + CompensationForFlip;
+			EnemyAttackMC.x = EF_Pholdin_Animation.x;
+			EnemyAttackMC.y = EF_Pholdin_Animation.y;
+			if(EF_PosX < WallMc_Left.x + WallMc_Left.width){
+				EF_PosX = WallMc_Left.x + WallMc_Left.width;
+			}
+			if(EF_PosX + EF_Width > WallMc_Right.x){
+				EF_PosX = WallMc_Right.x - EF_Width;
+			}
+		}
+	}
+	
+	
+	
+	
+	if(PF_SlashHitBox.hitTestObject(EF_UFF_Animation)){
+		DamageEnemy(true);
+	}
+	if(EnemyAttackMC.hitTestObject(PlayerCharacterPrisonerAnimation.PrisonerBattleMc.HitBoxMc)){
+		damagePlayer(EM_Damage, EF_FacingRight);
+	}
+}
+	
+	
+	
+	
+	
+/*
+var EM_MonsterName:String = "Missing_Str";
+var EM_Health:int = 0;
+var EM_Damage:int = 0;
+var EM_Speed:int = 0;
+var EM_CoinAmount:int = 0;
+*/
+	
+//TestHitBox.x = EF_UFF_Animation.x + EF_UFF_Animation.width/2;
+//TestHitBox.y = EF_UFF_Animation.y;
+//var EF_PosX:Number = TestHitBox.x;
+//var EF_PosY:Number = TestHitBox.y;
+
+var EF_CoolDownMax:int = 42;
+var EF_CoolDown:int = 0;
+
+var CompensationForFlip:int = 0;
+var MORECompensationForFlip:int = 0;
+
+var EF_Bite:Boolean = false;
+	
+var EF_PosX:Number = 696.45;
+var EF_PosY:Number = 690;
+
+var EF_Width = 255;
+var EF_Dead = false;
+
+if(EM_MonsterType == 0){
+	EF_PosX = 746.3;
+	EF_PosY = 690;
+} else if(EM_MonsterType == 0){
+	EF_PosX = 696.45;
+	EF_PosY = 690;
+}
+
+var EF_FacingRight = false;
+
+var EF_VelocityX:Number = 0;
+var EF_VelocityY:Number = 0;
+
+var EF_AccelerationX:Number = 0;
+var EF_AccelerationY:Number = 5;
+	
+var EF_CurrentHealth = EM_Health;
+var EF_CooldownInvulnerability:int = 0;
+
+
+var HealthBarColour:ColorTransform = new ColorTransform();
+HealthBarColour.blueOffset = -256;
+updateHealthBar();	
+	
+	
+	
+function updateHealthBar():void{
+	HealthBarMc.EnemyName_txt.text = EM_MonsterName;
+	HealthBarMc.PrisonerHealth_txt.text = (PF_CurrentHealth + " - " + PF_PlayerMaxHealth);
+	HealthBarMc.EnemyHealth_txt.text = (EF_CurrentHealth + " - " + EM_Health);
+	var PF_ChangeAmount:Number = (PF_CurrentHealth - PF_PlayerMaxHealth/2) / (PF_PlayerMaxHealth/2);
+	HealthBarColour.greenOffset = PF_ChangeAmount*256;
+	HealthBarColour.redOffset = -PF_ChangeAmount*256; 
+	HealthBarMc.PrisonerHealthBar.transform.colorTransform = HealthBarColour;
+	HealthBarMc.PrisonerHealthBar.width = ((PF_CurrentHealth) / (PF_PlayerMaxHealth))*400;
+	var EF_ChangeAmount:Number = (EF_CurrentHealth - EM_Health/2) / (EM_Health/2);
+	HealthBarColour.greenOffset = EF_ChangeAmount*256;
+	HealthBarColour.redOffset = -EF_ChangeAmount*256; 
+	HealthBarMc.EnemyHealthBar.transform.colorTransform = HealthBarColour;
+	HealthBarMc.EnemyHealthBar.width = ((EF_CurrentHealth) / (EM_Health))*400;
+}
